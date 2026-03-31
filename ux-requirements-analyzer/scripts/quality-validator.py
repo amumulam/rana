@@ -615,7 +615,7 @@ def check_card_fields(content: str) -> dict:
 
     CARD_SECTION_KEYWORDS = ["需求分析卡", "交付物 A", "交付物A"]
 
-    for i, line in enumerate(lines, 1):
+    for line in lines:
         if line.strip().startswith("```"):
             in_code_block = not in_code_block
             continue
@@ -810,9 +810,11 @@ def run_validation(analysis_dir: Path):
                     f"  字段完整性: ⚠ WARN（{required_count}/{required_count} 必填字段存在，"
                     f"另有 {len(card['extra'])} 个扩展字段：{extra_preview}）"
                 )
-                total_issues += len(card["extra"])
             else:  # FAIL
-                missing_preview = "、".join(card["missing"])
+                missing_fields = card["missing"]
+                missing_preview = "、".join(missing_fields[:3])
+                if len(missing_fields) > 3:
+                    missing_preview += f"... 共{len(missing_fields)}个"
                 print(f"  字段完整性: ✗ FAIL（缺失必填字段：{missing_preview}）")
                 total_issues += len(card["missing"])
                 failed_dimensions.append(f"{filename} 字段完整性")
