@@ -812,8 +812,8 @@ def run_validation(analysis_dir: Path):
                 )
             else:  # FAIL
                 missing_fields = card["missing"]
-                missing_preview = "、".join(missing_fields[:3])
-                if len(missing_fields) > 3:
+                missing_preview = "、".join(missing_fields[:5])
+                if len(missing_fields) > 5:
                     missing_preview += f"... 共{len(missing_fields)}个"
                 print(f"  字段完整性: ✗ FAIL（缺失必填字段：{missing_preview}）")
                 total_issues += len(card["missing"])
