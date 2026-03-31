@@ -87,6 +87,24 @@ EXPECTED_SECTIONS = {
     ]
 }
 
+# 需求分析卡必填字段（来自 templates/requirement-card.md，共14项）
+REQUIRED_CARD_FIELDS = [
+    "需求名称",
+    "版本/迭代号",
+    "需求来源",
+    "背景说明",
+    "目标用户",
+    "使用场景",
+    "核心问题",
+    "需求拆解",
+    "业务规则",
+    "约束条件",
+    "优先级",
+    "待澄清项",
+    "风险点",
+    "需求结论",
+]
+
 
 # ──────────────────────────────────────────────
 # 来源追溯：通用工具函数
@@ -576,6 +594,94 @@ def check_sections(content: str, expected_sections: list) -> dict:
     return results
 
 
+def check_card_fields(content: str) -> dict:
+    """
+    检查 final-analysis.md 中需求分析卡的字段完整性。
+    定位「交付物 A：需求分析卡」或「需求分析卡」章节（## 级别），
+    提取所有表格数据行的第一列作为字段名，与 REQUIRED_CARD_FIELDS 对比。
+
+    返回：
+      {
+        "missing": [...],   # 必填但缺失的字段
+        "extra": [...],     # 存在但不在必填列表的字段
+        "found": [...],     # 实际找到的所有字段名
+        "status": "PASS" | "WARN" | "FAIL"
+      }
+    """
+    lines = content.split("\n")
+    in_card_section = False
+    found_fields = []
+    in_code_block = False
+
+    CARD_SECTION_KEYWORDS = ["需求分析卡", "交付物 A", "交付物A"]
+
+    for i, line in enumerate(lines, 1):
+        if line.strip().startswith("```"):
+            in_code_block = not in_code_block
+            continue
+        if in_code_block:
+            continue
+
+        if re.match(r"^##\s", line):
+            heading_text = line.strip()
+            if any(kw in heading_text for kw in CARD_SECTION_KEYWORDS):
+                in_card_section = True
+            elif in_card_section:
+                break
+            continue
+
+        if re.match(r"^###", line):
+            continue
+
+        if not in_card_section:
+            continue
+
+        if "|" not in line or is_table_separator(line):
+            continue
+
+        cells = table_cells(line)
+        if not cells:
+            continue
+
+        field_name = re.sub(r"\*\*", "", cells[0]).strip()
+
+        if field_name in ("字段", "内容", "来源追溯", "来源", ""):
+            continue
+
+        if not field_name or field_name in ("—", "-"):
+            continue
+
+        found_fields.append(field_name)
+
+    if not found_fields:
+        return {
+            "missing": REQUIRED_CARD_FIELDS[:],
+            "extra": [],
+            "found": [],
+            "status": "FAIL",
+        }
+
+    required_set = set(REQUIRED_CARD_FIELDS)
+    found_set = set(found_fields)
+
+    missing = [f for f in REQUIRED_CARD_FIELDS if f not in found_set]
+    extra = [f for f in found_fields if f not in required_set]
+
+    if missing:
+        status = "FAIL"
+    elif extra:
+        status = "WARN"
+    else:
+        status = "PASS"
+
+    return {
+        "missing": missing,
+        "extra": extra,
+        "found": found_fields,
+        "status": status,
+    }
+
+
 # ──────────────────────────────────────────────
 # 报告输出
 # ──────────────────────────────────────────────
@@ -688,6 +794,28 @@ def run_validation(analysis_dir: Path):
                 failed_dimensions.append(f"{filename} 章节")
             else:
                 print("  章节完整性: ✓ PASS")
+
+        # 字段完整性检查（针对 final-analysis.md 的需求分析卡）
+        if filename == "final-analysis.md":
+            card = check_card_fields(content)
+            total = len(card["found"])
+            required_count = len(REQUIRED_CARD_FIELDS)
+            if card["status"] == "PASS":
+                print(f"  字段完整性: ✓ PASS（{total}/{required_count}）")
+            elif card["status"] == "WARN":
+                extra_preview = ", ".join(card["extra"][:3])
+                if len(card["extra"]) > 3:
+                    extra_preview += f"... 共{len(card['extra'])}个"
+                print(
+                    f"  字段完整性: ⚠ WARN（{required_count}/{required_count} 必填字段存在，"
+                    f"另有 {len(card['extra'])} 个扩展字段：{extra_preview}）"
+                )
+                total_issues += len(card["extra"])
+            else:  # FAIL
+                missing_preview = "、".join(card["missing"])
+                print(f"  字段完整性: ✗ FAIL（缺失必填字段：{missing_preview}）")
+                total_issues += len(card["missing"])
+                failed_dimensions.append(f"{filename} 字段完整性")
 
     # ─ 3. 总结 ─
     print_header("验证结果汇总")
