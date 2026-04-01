@@ -1,6 +1,6 @@
-# AGENTS.md — UX Requirements Analyzer
+# AGENTS.md — UX Requirement Analysis
 
-This project is an **OpenCode Skill** that helps UX designers turn PM PRDs into structured requirement analysis documents. The core deliverable is `ux-requirements-analyzer/` — a skill directory installable into `~/.agents/skills/`.
+This project is an **OpenCode Skill** that helps UX designers turn PM PRDs into structured requirement analysis documents. The core deliverable is `ux-requirement-analysis/` — a skill directory installable into `~/.agents/skills/`.
 
 ---
 
@@ -8,7 +8,7 @@ This project is an **OpenCode Skill** that helps UX designers turn PM PRDs into 
 
 ```
 requirements-analysis/
-├── ux-requirements-analyzer/        # Skill source (canonical copy)
+├── ux-requirement-analysis/         # Skill source (canonical copy)
 │   ├── SKILL.md                     # Skill definition — workflow, stage specs, output formats
 │   ├── scripts/
 │   │   └── quality-validator.py     # CLI quality gate checker (855 lines)
@@ -34,9 +34,9 @@ requirements-analysis/
 └── pyproject.toml                   # pytest + ruff config
 ```
 
-**Install copy:** After every change to `ux-requirements-analyzer/`, sync:
+**Install copy:** After every change to `ux-requirement-analysis/`, sync:
 ```bash
-cp -r ux-requirements-analyzer/. ~/.agents/skills/ux-requirements-analyzer/
+cp -r ux-requirement-analysis/. ~/.agents/skills/ux-requirement-analysis/
 ```
 
 ---
@@ -70,12 +70,12 @@ python3 -m pytest tests/e2e/ -v
 
 ### Run the validator manually
 ```bash
-python3 ux-requirements-analyzer/scripts/quality-validator.py test-runs/test-a-normal
+python3 ux-requirement-analysis/scripts/quality-validator.py test-runs/test-a-normal
 ```
 
 ### Lint (ruff must be installed: `pip3 install ruff`)
 ```bash
-ruff check ux-requirements-analyzer/scripts/
+ruff check ux-requirement-analysis/scripts/
 ```
 
 **Note:** Use `python3` not `python` — only `python3` is on PATH. pytest is at `~/.Library/Python/3.9/bin/pytest` but `python3 -m pytest` always works.
@@ -131,7 +131,7 @@ from pathlib import Path
 def _load_validator():
     p = (
         Path(__file__).parent.parent.parent
-        / "ux-requirements-analyzer"
+        / "ux-requirement-analysis"
         / "scripts"
         / "quality-validator.py"
     )
@@ -191,10 +191,10 @@ Detects `## ` heading containing `"需求分析卡"`, `"交付物 A"`, or `"交�
 
 ## Development Workflow
 
-1. Edit `ux-requirements-analyzer/` source
+1. Edit `ux-requirement-analysis/` source
 2. Run `python3 -m pytest tests/ -v` — must stay 27/27 green
 3. Run validator manually on relevant fixture to confirm behavior
-4. Sync install copy: `cp -r ux-requirements-analyzer/. ~/.agents/skills/ux-requirements-analyzer/`
+4. Sync install copy: `cp -r ux-requirement-analysis/. ~/.agents/skills/ux-requirement-analysis/`
 5. Commit source + tests together
 
 Design docs → `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`

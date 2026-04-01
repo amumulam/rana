@@ -5,7 +5,7 @@ from pathlib import Path
 def _load_validator():
     p = (
         Path(__file__).parent.parent.parent
-        / "ux-requirements-analyzer"
+        / "ux-requirement-analysis"
         / "scripts"
         / "quality-validator.py"
     )

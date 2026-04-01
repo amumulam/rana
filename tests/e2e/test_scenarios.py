@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent.parent
-VALIDATOR = REPO_ROOT / "ux-requirements-analyzer" / "scripts" / "quality-validator.py"
+VALIDATOR = REPO_ROOT / "ux-requirement-analysis" / "scripts" / "quality-validator.py"
 TEST_RUNS = REPO_ROOT / "test-runs"
 
 
