@@ -607,6 +607,9 @@ def check_card_fields(content: str) -> dict:
 
     CARD_SECTION_KEYWORDS = ["需求分析卡", "交付物 A", "交付物A"]
 
+    # 记录进入卡片区域时的标题级别（1 或 2），以便遇到同级或更高标题时退出
+    card_heading_level = None
+
     for line in lines:
         if line.strip().startswith("```"):
             in_code_block = not in_code_block
@@ -614,15 +617,21 @@ def check_card_fields(content: str) -> dict:
         if in_code_block:
             continue
 
-        if re.match(r"^##\s", line):
+        # 检查标题行（# 或 ## 或 ### 等）
+        heading_match = re.match(r"^(#{1,6})\s", line)
+        if heading_match:
+            heading_level = len(heading_match.group(1))
             heading_text = line.strip()
-            if any(kw in heading_text for kw in CARD_SECTION_KEYWORDS):
-                in_card_section = True
-            elif in_card_section:
-                break
-            continue
 
-        if re.match(r"^###", line):
+            if not in_card_section:
+                # 尚未进入卡片区域：检查是否是卡片标题（支持 # 和 ## 两级）
+                if heading_level <= 2 and any(kw in heading_text for kw in CARD_SECTION_KEYWORDS):
+                    in_card_section = True
+                    card_heading_level = heading_level
+            else:
+                # 已在卡片区域内：遇到同级或更高标题时退出
+                if heading_level <= card_heading_level:
+                    break
             continue
 
         if not in_card_section:
