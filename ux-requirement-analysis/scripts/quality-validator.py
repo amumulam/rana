@@ -28,20 +28,27 @@ from pathlib import Path
 
 # 来源标注模式
 TRACEABILITY_PATTERNS = [
-    r"\[PRD[^\]]+\]",
+    r"\[PRD[^\]]+\]",  # [PRD第X节] / [PRD 第X节] / [PRD 需求清单] 等所有 PRD 引用
     r"\[截图\d+[^\]]*\]",
+    r"\[PDF第\d+页[^\]]*\]",  # PDF 文字内容引用
+    r"\[PDF截图\d+[^\]]*\]",  # PDF 图片引用
     r"\[Figma[^\]]+\]",
     r"\[PM确认[^\]]*\]",
     r"\[研发确认[^\]]*\]",
     r"\[测试确认[^\]]*\]",
     r"\[业务确认[^\]]*\]",
     r"\[设计师确认[^\]]*\]",
-    r"\[推断[^\]]*\]",
+    r"\[用户确认[^\]]*\]",  # [用户确认] / [用户确认 19:16] — 对话确认通用格式
+    r"\[推断[^\]]*\]",  # [推断：依据] / [推断] 裸标注
+    r"\[分析推断[^\]]*\]",  # [分析推断] — 裸推断变体
+    r"\[场景还原推断[^\]]*\]",
+    r"\[五问法推断[^\]]*\]",
+    r"\[X-Y分析推断[^\]]*\]",
     r"\[缺失[^\]]*\]",
     r"\[口头说明[^\]]*\]",
     r"\[CHG-\d+\]",
     r"\[原始输入[^\]]*\]",
-    r"\[场景还原推断[^\]]*\]",
+    r"\[分析创建[^\]]*\]",  # [分析创建] — 系统生成内容，无外部来源
     r"\[quality-report[^\]]*\]",
 ]
 
@@ -195,9 +202,7 @@ def check_traceability_input_structured(content: str) -> dict:
             continue
 
         is_table_row = "|" in line and not is_table_separator(line)
-        is_list_item = bool(
-            re.match(r"^\s*[-*]\s+\S", line) or re.match(r"^\s*\d+\.\s+\S", line)
-        )
+        is_list_item = bool(re.match(r"^\s*[-*]\s+\S", line) or re.match(r"^\s*\d+\.\s+\S", line))
 
         if not (is_table_row or is_list_item):
             continue
@@ -209,9 +214,7 @@ def check_traceability_input_structured(content: str) -> dict:
                 continue
             # 跳过纯数字/百分比统计行
             non_empty = [c for c in cells if c and c not in ("—", "-")]
-            if non_empty and all(
-                re.match(r"^[\d%（）().*A-Z\s]+$", c) for c in non_empty
-            ):
+            if non_empty and all(re.match(r"^[\d%（）().*A-Z\s]+$", c) for c in non_empty):
                 continue
 
         # 跳过列表中的纯结构说明行
@@ -347,9 +350,7 @@ def check_traceability_final_analysis(content: str) -> dict:
             continue
 
         is_table_row = "|" in line and not is_table_separator(line)
-        is_list_item = bool(
-            re.match(r"^\s*[-*]\s+\S", line) or re.match(r"^\s*\d+\.\s+\S", line)
-        )
+        is_list_item = bool(re.match(r"^\s*[-*]\s+\S", line) or re.match(r"^\s*\d+\.\s+\S", line))
 
         if not (is_table_row or is_list_item):
             continue
@@ -361,9 +362,7 @@ def check_traceability_final_analysis(content: str) -> dict:
                 continue
             # 跳过纯数字/百分比统计行
             non_empty = [c for c in cells if c and c not in ("—", "-")]
-            if non_empty and all(
-                re.match(r"^[\d%（）().*A-Z\s]+$", c) for c in non_empty
-            ):
+            if non_empty and all(re.match(r"^[\d%（）().*A-Z\s]+$", c) for c in non_empty):
                 continue
             # 跳过引用行（内容列为「[见交付物X]」等）
             if len(cells) >= 2:
@@ -380,9 +379,7 @@ def check_traceability_final_analysis(content: str) -> dict:
             bare = re.sub(r"\*\*", "", stripped_prefix).strip()
 
             # 跳过「来源：」注脚行
-            if re.match(r"^来源[:：]", stripped_prefix) or re.match(
-                r"^来源[:：]", bare
-            ):
+            if re.match(r"^来源[:：]", stripped_prefix) or re.match(r"^来源[:：]", bare):
                 continue
             # 跳过其他结构说明行
             if re.match(
@@ -395,8 +392,7 @@ def check_traceability_final_analysis(content: str) -> dict:
             # 来源在下一行：  - 来源：...
             next_line = lines[i] if i < len(lines) else ""
             has_next_source = bool(
-                re.match(r"^\s+-\s+来源[:：]", next_line)
-                or re.match(r"^\s+来源[:：]", next_line)
+                re.match(r"^\s+-\s+来源[:：]", next_line) or re.match(r"^\s+来源[:：]", next_line)
             )
             if has_next_source:
                 # 如果行本身是以 **场景/边界/不支持 开头的描述行，跳过
@@ -500,9 +496,7 @@ def check_traceability_gap_analysis(content: str) -> dict:
             continue
 
         is_table_row = "|" in line and not is_table_separator(line)
-        is_list_item = bool(
-            re.match(r"^\s*[-*]\s+\S", line) or re.match(r"^\s*\d+\.\s+\S", line)
-        )
+        is_list_item = bool(re.match(r"^\s*[-*]\s+\S", line) or re.match(r"^\s*\d+\.\s+\S", line))
 
         if not (is_table_row or is_list_item):
             continue
@@ -514,9 +508,7 @@ def check_traceability_gap_analysis(content: str) -> dict:
                 continue
             # 跳过纯数字/百分比统计行
             non_empty = [c for c in cells if c and c not in ("—", "-")]
-            if non_empty and all(
-                re.match(r"^[\d%（）().*A-Z\s]+$", c) for c in non_empty
-            ):
+            if non_empty and all(re.match(r"^[\d%（）().*A-Z\s]+$", c) for c in non_empty):
                 continue
 
         if is_list_item:
@@ -698,6 +690,108 @@ def print_section(title: str):
 
 
 # ──────────────────────────────────────────────
+# 量化评分
+# ──────────────────────────────────────────────
+
+# 各维度满分
+SCORE_WEIGHTS = {
+    "file_structure": 20,  # 5个文件各4分
+    "traceability": 30,  # 3个被检文件各10分，按 pass_rate 线性折算
+    "card_fields": 25,  # 14个必填字段线性折算
+    "sections": 15,  # 5个必要章节各3分
+    "vague_terms": 10,  # 0处=10分，每处扣2分，最低0
+}
+
+
+def compute_score(analysis_dir: Path) -> dict:
+    """
+    计算分析目录的量化得分（0-100）。
+
+    Returns:
+        {
+            "total": int,          # 总分 0-100
+            "dimensions": {
+                "file_structure": int,
+                "traceability":   int,
+                "card_fields":    int,
+                "sections":       int,
+                "vague_terms":    int,
+            },
+            "pass": bool,          # 是否通过（无 FAIL 维度）
+        }
+    """
+    dims = {}
+    failed = False
+
+    # ── 1. 文件结构（20分，5个文件各4分）──
+    structure = check_file_structure(analysis_dir)
+    missing_count = len(structure["fail"])
+    dims["file_structure"] = max(0, SCORE_WEIGHTS["file_structure"] - missing_count * 4)
+    if missing_count > 0:
+        failed = True
+
+    # ── 2. 来源追溯（30分，3个被检文件各10分按 pass_rate 折算）──
+    trace_files = [
+        ("input-structured.md", check_traceability_input_structured),
+        ("gap-analysis.md", check_traceability_gap_analysis),
+        ("final-analysis.md", check_traceability_final_analysis),
+    ]
+    trace_score = 0
+    per_file = SCORE_WEIGHTS["traceability"] // len(trace_files)  # 10
+    for fname, checker in trace_files:
+        fpath = analysis_dir / fname
+        if not fpath.exists():
+            continue  # 文件缺失已在 file_structure 扣分
+        content = fpath.read_text(encoding="utf-8")
+        result = checker(content)
+        file_score = round(per_file * result["pass_rate"])
+        trace_score += file_score
+        if result["pass_rate"] < 0.8:
+            failed = True
+    dims["traceability"] = min(SCORE_WEIGHTS["traceability"], trace_score)
+
+    # ── 3. 字段完整性（25分，14个必填字段线性折算）──
+    final_path = analysis_dir / "final-analysis.md"
+    if final_path.exists():
+        content = final_path.read_text(encoding="utf-8")
+        card = check_card_fields(content)
+        found = len(card["found"])
+        required = len(REQUIRED_CARD_FIELDS)
+        dims["card_fields"] = round(SCORE_WEIGHTS["card_fields"] * found / required)
+        if card["status"] == "FAIL":
+            failed = True
+    else:
+        dims["card_fields"] = 0
+
+    # ── 4. 章节完整性（15分，5个必要章节各3分）──
+    if final_path.exists():
+        content = final_path.read_text(encoding="utf-8")
+        sections_result = check_sections(content, EXPECTED_SECTIONS["final-analysis.md"])
+        missing_sections = len(sections_result["fail"])
+        dims["sections"] = max(0, SCORE_WEIGHTS["sections"] - missing_sections * 3)
+        if missing_sections > 0:
+            failed = True
+    else:
+        dims["sections"] = 0
+
+    # ── 5. 模糊表述控制（10分，每处扣2分，最低0）──
+    vague_count = 0
+    for fname in VAGUE_CHECK_FILES:
+        fpath = analysis_dir / fname
+        if fpath.exists():
+            content = fpath.read_text(encoding="utf-8")
+            vague_count += len(check_vague_terms(content))
+    dims["vague_terms"] = max(0, SCORE_WEIGHTS["vague_terms"] - vague_count * 2)
+
+    total = sum(dims.values())
+    return {
+        "total": total,
+        "dimensions": dims,
+        "pass": not failed,
+    }
+
+
+# ──────────────────────────────────────────────
 # 主验证流程
 # ──────────────────────────────────────────────
 
@@ -757,9 +851,7 @@ def run_validation(analysis_dir: Path):
             trace = checker(content)
             pass_rate = trace["pass_rate"] * 100
             status = "✓ PASS" if pass_rate >= 80 else "✗ FAIL"
-            print(
-                f"  来源追溯: {status}（{pass_rate:.0f}%，检查了 {trace['checked']} 行）"
-            )
+            print(f"  来源追溯: {status}（{pass_rate:.0f}%，检查了 {trace['checked']} 行）")
             if trace["issues"]:
                 for issue in trace["issues"][:5]:
                     print(f"    行{issue['line']}: {issue['content']}")
@@ -775,9 +867,7 @@ def run_validation(analysis_dir: Path):
             if vague:
                 print(f"  模糊表述: ⚠ WARN（发现 {len(vague)} 处）")
                 for issue in vague[:3]:
-                    print(
-                        f"    行{issue['line']} [{issue['term']}]: {issue['content']}"
-                    )
+                    print(f"    行{issue['line']} [{issue['term']}]: {issue['content']}")
                 total_issues += len(vague)
             else:
                 print("  模糊表述: ✓ PASS")
@@ -841,15 +931,30 @@ def run_validation(analysis_dir: Path):
 # ──────────────────────────────────────────────
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("用法：python3 quality-validator.py <分析目录>")
+    import json as _json
+
+    args = sys.argv[1:]
+    score_mode = "--score" in args
+    args = [a for a in args if a != "--score"]
+
+    if not args:
+        print("用法：python3 quality-validator.py <分析目录> [--score]")
         print("示例：python3 quality-validator.py ./my-analysis/")
+        print("      python3 quality-validator.py ./my-analysis/ --score")
         sys.exit(1)
 
-    analysis_dir = Path(sys.argv[1])
+    analysis_dir = Path(args[0])
     if not analysis_dir.exists():
         print(f"错误：目录不存在：{analysis_dir}")
         sys.exit(1)
 
     passed = run_validation(analysis_dir)
+
+    if score_mode:
+        score = compute_score(analysis_dir)
+        print("\n" + "─" * 60)
+        print("  量化评分（--score）")
+        print("─" * 60)
+        print(_json.dumps(score, ensure_ascii=False, indent=2))
+
     sys.exit(0 if passed else 1)

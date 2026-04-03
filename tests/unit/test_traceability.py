@@ -85,3 +85,33 @@ def test_traceability_skip_code_block():
     content = "```\n无注释的行\n```\n"
     result = check_traceability_input_structured(content)
     assert result["checked"] == 0
+
+
+def test_has_traceability_prd_with_space():
+    """[PRD 第X节] 有空格变体应被识别"""
+    assert has_traceability("背景说明 [PRD 第 1 节]") is True
+
+
+def test_has_traceability_prd_named_section():
+    """[PRD 需求清单] 命名章节应被识别"""
+    assert has_traceability("来自需求清单 [PRD 需求清单]") is True
+
+
+def test_has_traceability_user_confirm():
+    """[用户确认] 应被识别（等价于对话确认）"""
+    assert has_traceability("目标用户范围已确认 [用户确认]") is True
+
+
+def test_has_traceability_user_confirm_timestamp():
+    """[用户确认 19:16] 带时间戳变体应被识别"""
+    assert has_traceability("约束条件已确认 [用户确认 19:16]") is True
+
+
+def test_has_traceability_analysis_infer():
+    """[分析推断] 裸推断变体应被识别"""
+    assert has_traceability("该字段为系统默认 [分析推断]") is True
+
+
+def test_has_traceability_analysis_create():
+    """[分析创建] 系统生成占位应被识别"""
+    assert has_traceability("版本/迭代号 v1.0 [分析创建]") is True
