@@ -19,6 +19,7 @@ _v = _load_validator()
 has_traceability = _v.has_traceability
 is_table_separator = _v.is_table_separator
 check_traceability_input_structured = _v.check_traceability_input_structured
+check_traceability_final_analysis = _v.check_traceability_final_analysis
 
 
 def test_has_traceability_prd():
@@ -168,3 +169,33 @@ def test_section_h2_annotated_h3_unannotated():
     # ## 下的列表项豁免，### 无标注所以子节下的行被检查
     assert result["checked"] == 1
     assert result["pass_rate"] == 0.0
+
+
+def test_final_analysis_cross_reference_rows_skipped():
+    """来源列为 — 且内容为「见下文/见交付物」的交叉引用行应被跳过"""
+    content = """\
+## 需求分析卡
+
+| 字段 | 内容 | 来源追溯 |
+|------|------|---------|
+| **需求名称** | 服务优化 | [PRD第1节] |
+| **需求拆解** | 见下文「需求拆解清单」 | — |
+| **需求结论** | 见下文「需求分析结论」 | — |
+"""
+    result = check_traceability_final_analysis(content)
+    # 需求名称有来源，需求拆解和需求结论是引用行应跳过
+    assert result["pass_rate"] == 1.0, f"issues={result['issues']}, checked={result['checked']}"
+
+
+def test_final_analysis_dash_source_column_skipped():
+    """来源列（第3列）为 — 的 [见交付物] 行应被视为合法引用行，跳过检查"""
+    content = """\
+## 需求分析卡
+
+| 字段 | 内容 | 来源追溯 |
+|------|------|---------|
+| **待澄清项** | [见交付物 D] | — |
+| **风险点** | 风险内容 | [PRD第1节] |
+"""
+    result = check_traceability_final_analysis(content)
+    assert result["pass_rate"] == 1.0, f"issues={result['issues']}, checked={result['checked']}"

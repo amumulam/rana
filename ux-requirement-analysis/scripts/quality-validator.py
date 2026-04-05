@@ -375,10 +375,16 @@ def check_traceability_final_analysis(content: str) -> dict:
             non_empty = [c for c in cells if c and c not in ("—", "-")]
             if non_empty and all(re.match(r"^[\d%（）().*A-Z\s]+$", c) for c in non_empty):
                 continue
-            # 跳过引用行（内容列为「[见交付物X]」等）
+            # 跳过引用行：
+            # 1. 内容列（cells[1]）匹配 REFERENCE_CELL_PATTERNS（[见交付物X]、—、[缺失]）
+            # 2. 来源列（cells[2]）为 — 且内容列含"见下文"/"见交付物"引用文字
             if len(cells) >= 2:
                 content_cell = cells[1] if len(cells) > 1 else ""
+                source_cell = cells[2].strip() if len(cells) > 2 else ""
                 if any(re.match(pat, content_cell) for pat in REFERENCE_CELL_PATTERNS):
+                    continue
+                # 来源列为 — 且内容列是引用性文字
+                if source_cell == "—" and re.search(r"见下文|见交付物|详见", content_cell):
                     continue
 
         if is_list_item:
