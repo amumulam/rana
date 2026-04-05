@@ -150,6 +150,7 @@ def check_traceability_input_structured(content: str) -> dict:
     issues = []
     checked = 0
     in_code_block = False
+    current_section_has_source = False  # 当前直接父章节标题是否已有来源标注
 
     # 表头关键词：这些作为首列时说明是表头行
     HEADER_KEYWORDS = [
@@ -197,6 +198,12 @@ def check_traceability_input_structured(content: str) -> dict:
         if in_code_block:
             continue
         if is_empty_or_heading(line):
+            # 如果是 ## 或 ### 标题，更新章节级来源传播状态
+            if re.match(r"^#{2,3}\s", line):
+                current_section_has_source = has_traceability(line)
+            elif re.match(r"^#\s", line):
+                # 顶级标题（# 文档标题）重置传播状态
+                current_section_has_source = False
             continue
         if re.match(r"^>\s", line) or re.match(r"^\*\*[^*]+\*\*\s*$", line):
             continue
@@ -225,6 +232,10 @@ def check_traceability_input_structured(content: str) -> dict:
                 stripped,
             ):
                 continue
+
+        # 如果当前行所在章节的标题已有来源标注，豁免该行的单独标注要求
+        if current_section_has_source:
+            continue
 
         checked += 1
         if not has_traceability(line):

@@ -115,3 +115,47 @@ def test_has_traceability_analysis_infer():
 def test_has_traceability_analysis_create():
     """[分析创建] 系统生成占位应被识别"""
     assert has_traceability("版本/迭代号 v1.0 [分析创建]") is True
+
+
+def test_section_level_traceability_propagates():
+    """章节标题 [PRD第X节] 的来源应传播到该节下的所有列表项"""
+    content = (
+        "### 1. 维修模式优化 [PRD第1节]\n"
+        "- **当前状态**：位于第 5 屏，CTR 5.3%\n"
+        "- **优化方案**：前置到第 1 位\n"
+        "- **预期指标**：CTR ≥6.0%\n"
+        "\n"
+        "### 2. 客服优化 [PRD第2节]\n"
+        "- **高端人群**：CTR 9.01%\n"
+    )
+    result = check_traceability_input_structured(content)
+    assert result["pass_rate"] == 1.0, f"issues={result['issues']}"
+    assert result["issues"] == []
+
+
+def test_section_level_traceability_stops_at_new_section():
+    """进入新章节后，旧章节的来源传播应停止；新章节无标注则重新要求"""
+    content = (
+        "### 1. 有标注的节 [PRD第1节]\n"
+        "- 这行应被豁免\n"
+        "\n"
+        "### 2. 没有标注的节\n"
+        "- 这行应被检查（无来源）\n"
+    )
+    result = check_traceability_input_structured(content)
+    # 第1节的列表项豁免（不计入 checked），第2节的列表项被检查且未标注
+    assert result["checked"] == 1
+    assert result["pass_rate"] == 0.0
+
+
+def test_section_level_traceability_table_rows():
+    """章节级来源传播应同样适用于表格数据行"""
+    content = (
+        "### 关键数据 [PRD需求清单]\n"
+        "| 模块 | 当前 UV | 当前 CTR |\n"
+        "|------|--------|----------|\n"
+        "| 维修模式 | 4.2 万 | 5.3% |\n"
+        "| 客服卡片 | - | 9.01% |\n"
+    )
+    result = check_traceability_input_structured(content)
+    assert result["pass_rate"] == 1.0, f"issues={result['issues']}"
