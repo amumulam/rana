@@ -159,3 +159,12 @@ def test_section_level_traceability_table_rows():
     )
     result = check_traceability_input_structured(content)
     assert result["pass_rate"] == 1.0, f"issues={result['issues']}"
+
+
+def test_section_h2_annotated_h3_unannotated():
+    """## 有标注但 ### 子节无标注时，### 下内容应被检查（扁平替换行为）"""
+    content = "## 父节 [PRD第1节]\n- 直接在 ## 下的行\n\n### 子节\n- 子节下的行\n"
+    result = check_traceability_input_structured(content)
+    # ## 下的列表项豁免，### 无标注所以子节下的行被检查
+    assert result["checked"] == 1
+    assert result["pass_rate"] == 0.0
