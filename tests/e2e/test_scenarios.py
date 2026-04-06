@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent.parent
-VALIDATOR = REPO_ROOT / "ux-requirement-analysis" / "scripts" / "quality-validator.py"
+VALIDATOR = REPO_ROOT / "rana" / "scripts" / "quality-validator.py"
 TEST_RUNS = REPO_ROOT / "test-runs"
 
 
@@ -44,3 +44,10 @@ def test_scenario_e_traceability_fail():
     code, out = run_validator(TEST_RUNS / "test-e-traceability-fail")
     assert code == 1, f"Expected exit 1, got {code}\nOutput:\n{out}"
     assert "来源追溯" in out or "可追溯性" in out
+
+
+def test_scenario_f_screenshot_input():
+    """截图输入场景：覆盖 [截图 1] 空格、[PM 确认] 空格、交付物B子表头、交付物E结论跳过"""
+    code, out = run_validator(TEST_RUNS / "test-f-screenshot-input")
+    assert code == 0, f"Expected exit 0, got {code}\nOutput:\n{out}"
+    assert "✓ PASS" in out
