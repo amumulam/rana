@@ -268,16 +268,18 @@ def check_traceability_final_analysis(content: str) -> dict:
         "交付物D",
         "设计输入建议",
         "当前分析状态",  # B中的AI评估表
-    ]
-
-    # 回到检查区块的标题关键词
-    RESUME_SECTION_HEADERS = [
+        "状态说明",  # 交付物D内的状态说明子区块
+        "汇总统计",  # 交付物D内的汇总统计子区块
+        # 交付物E：需求分析结论是前面分析的汇总，不再要求逐行来源
         "交付物 E",
         "交付物E",
         "需求分析结论",
         "一句话结论",
         "详细说明",
     ]
+
+    # 回到检查区块的标题关键词（交付物E后无需恢复检查）
+    RESUME_SECTION_HEADERS: list = []
 
     HEADER_KEYWORDS = [
         "字段",
@@ -292,6 +294,14 @@ def check_traceability_final_analysis(content: str) -> dict:
         "通过标准",
         "触发条件",
         "用户目标",
+        # 交付物B各子表的表头首列
+        "页面",
+        "分支条件",
+        "流程描述",
+        "异常类型",
+        "对象",
+        "依赖类型",
+        "依赖内容",
         "条件值",
         "边界类型",
         "影响",

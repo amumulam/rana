@@ -284,3 +284,99 @@ def test_gap_analysis_7dim_table_inline_source():
 """
     result = check_traceability_gap_analysis(content)
     assert result["pass_rate"] == 1.0, f"issues={result['issues']}, checked={result['checked']}"
+
+
+# ──────────────────────────────────────────────
+# Bug 3: 交付物B表头行（页面/分支条件/流程描述）未被跳过
+# ──────────────────────────────────────────────
+
+
+def test_final_analysis_deliverable_b_table_headers_skipped():
+    """交付物B中页面/入口/来源、分支条件/流程描述/来源等表头行应被跳过"""
+    content = """\
+## 需求拆解清单
+
+### 功能一：维修楼层前置
+
+| 页面 | 入口 | 来源 |
+|------|------|------|
+| 服务首页 | 底部导航「服务」Tab | [截图 1] |
+
+| 分支条件 | 流程描述 | 来源 |
+|---------|---------|------|
+| 用户已登录 | 直接进入维修模式页面 | [推断：线上原有逻辑] |
+"""
+    result = check_traceability_final_analysis(content)
+    assert result["pass_rate"] == 1.0, f"issues={result['issues']}, checked={result['checked']}"
+
+
+# ──────────────────────────────────────────────
+# Bug 4: 交付物D（状态说明/待澄清问题表/汇总统计）应整体跳过
+# ──────────────────────────────────────────────
+
+
+def test_final_analysis_deliverable_d_status_table_skipped():
+    """交付物D内的状态说明表不需要来源标注，应被跳过"""
+    content = """\
+# 交付物 D：待澄清问题清单
+
+## 状态说明
+
+| 状态 | 含义 |
+|------|------|
+| ⏳ 待确认 | 尚未得到回答 |
+| ✓ 已确认 | 已得到明确答复，记录在 change-log.md |
+| ⚠ 风险 | 无法在本期内确认，已标注为风险点 |
+"""
+    result = check_traceability_final_analysis(content)
+    assert result["checked"] == 0 or result["pass_rate"] == 1.0, (
+        f"issues={result['issues']}, checked={result['checked']}"
+    )
+
+
+def test_final_analysis_deliverable_d_summary_table_skipped():
+    """交付物D汇总统计表不需要来源标注，应被跳过"""
+    content = """\
+# 交付物 D：待澄清问题清单
+
+## 汇总统计
+
+| 确认对象 | 问题数 | P0 | P1 | P2 |
+|---------|--------|----|----|-----|
+| 研发 | 1 | 0 | 1 | 0 |
+| 测试 | 0 | 0 | 0 | 0 |
+"""
+    result = check_traceability_final_analysis(content)
+    assert result["checked"] == 0 or result["pass_rate"] == 1.0, (
+        f"issues={result['issues']}, checked={result['checked']}"
+    )
+
+
+# ──────────────────────────────────────────────
+# Bug 5: 交付物E（需求分析结论）应整体跳过
+# ──────────────────────────────────────────────
+
+
+def test_final_analysis_deliverable_e_skipped():
+    """交付物E的列表项是结论汇总，已在前面追溯，不应再要求逐行标注"""
+    content = """\
+# 交付物 E：需求分析结论
+
+## 详细说明
+
+**在什么场景**
+
+描述：
+- 维修场景：手机出故障时，用户焦急地寻找维修入口
+- 客服场景：使用遇到问题时，用户需要快速获得帮助
+
+**本次优先解决**
+
+描述：
+1. 维修楼层前置：将维修模式从底部功能列表移至「我要维修」楼层内
+2. 客服楼层改造：按会员等级展示专属皮肤
+"""
+    result = check_traceability_final_analysis(content)
+    assert result["checked"] == 0 or result["pass_rate"] == 1.0, (
+        f"issues={result['issues']}, checked={result['checked']}"
+    )
