@@ -3,12 +3,7 @@ from pathlib import Path
 
 
 def _load_validator():
-    p = (
-        Path(__file__).parent.parent.parent
-        / "ux-requirement-analysis"
-        / "scripts"
-        / "quality-validator.py"
-    )
+    p = Path(__file__).parent.parent.parent / "rana" / "scripts" / "quality-validator.py"
     spec = importlib.util.spec_from_file_location("quality_validator", p)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -20,6 +15,7 @@ has_traceability = _v.has_traceability
 is_table_separator = _v.is_table_separator
 check_traceability_input_structured = _v.check_traceability_input_structured
 check_traceability_final_analysis = _v.check_traceability_final_analysis
+check_traceability_gap_analysis = _v.check_traceability_gap_analysis
 
 
 def test_has_traceability_prd():
@@ -118,6 +114,37 @@ def test_has_traceability_analysis_create():
     assert has_traceability("版本/迭代号 v1.0 [分析创建]") is True
 
 
+def test_has_traceability_pm_confirm_with_space():
+    """[PM 确认] 带空格变体应被识别"""
+    assert has_traceability("目标用户范围已确认 [PM 确认]") is True
+
+
+def test_has_traceability_pm_confirm_with_space_and_note():
+    """[PM 确认：交设计处理] 带空格和附注应被识别"""
+    assert has_traceability("风险点 [PM 确认：交设计处理]") is True
+
+
+def test_has_traceability_dev_confirm_with_space():
+    """[研发 确认] 等带空格变体应被识别"""
+    assert has_traceability("接口依赖已确认 [研发确认]") is True
+    assert has_traceability("接口依赖已确认 [研发 确认]") is True
+
+
+def test_has_traceability_test_confirm_with_space():
+    """[测试 确认] 带空格变体应被识别"""
+    assert has_traceability("验收规则 [测试 确认]") is True
+
+
+def test_has_traceability_business_confirm_with_space():
+    """[业务 确认] 带空格变体应被识别"""
+    assert has_traceability("业务规则 [业务 确认]") is True
+
+
+def test_has_traceability_designer_confirm_with_space():
+    """[设计师 确认] 带空格变体应被识别"""
+    assert has_traceability("视觉规范 [设计师 确认]") is True
+
+
 def test_section_level_traceability_propagates():
     """章节标题 [PRD第X节] 的来源应传播到该节下的所有列表项"""
     content = (
@@ -198,4 +225,62 @@ def test_final_analysis_dash_source_column_skipped():
 | **风险点** | 风险内容 | [PRD第1节] |
 """
     result = check_traceability_final_analysis(content)
+    assert result["pass_rate"] == 1.0, f"issues={result['issues']}, checked={result['checked']}"
+
+
+# ──────────────────────────────────────────────
+# Bug 1: 分组行 | **▌ 基本信息** | | | 不应被计入检查
+# ──────────────────────────────────────────────
+
+
+def test_final_analysis_group_row_skipped():
+    """需求分析卡分组行（**▌ 分组名**）不含实质内容，不应被计入来源追溯检查"""
+    content = """\
+## 需求分析卡
+
+| 字段 | 内容 | 来源追溯 |
+|------|------|---------|
+| **▌ 基本信息** | | |
+| 需求名称 | 服务首页优化 | [用户确认] |
+| **▌ 用户与场景** | | |
+| 目标用户 | 所有 vivo 用户 | [PM 确认] |
+"""
+    result = check_traceability_final_analysis(content)
+    assert result["pass_rate"] == 1.0, f"issues={result['issues']}, checked={result['checked']}"
+
+
+# ──────────────────────────────────────────────
+# Bug 2: [截图 1] 带空格应被 has_traceability 识别
+# ──────────────────────────────────────────────
+
+
+def test_has_traceability_screenshot_with_space():
+    """[截图 1] 截图编号与数字之间有空格，应被识别为合法来源"""
+    assert has_traceability("页面结构信息 [截图 1]") is True
+
+
+def test_has_traceability_screenshot_no_space():
+    """[截图1] 无空格变体仍应被识别"""
+    assert has_traceability("页面结构信息 [截图1]") is True
+
+
+def test_has_traceability_screenshot_with_note():
+    """[截图 1 局部] 带附注变体应被识别"""
+    assert has_traceability("导航栏结构 [截图 1 局部]") is True
+
+
+def test_gap_analysis_7dim_table_inline_source():
+    """gap-analysis 7维度拆解表：来源嵌在内容列（cells[1]）时，整行应被认为有追溯"""
+    content = """\
+## 需求拆解（7 维度）
+
+### 功能一：维修楼层前置
+
+| 维度 | 内容 | 状态 |
+|------|------|------|
+| 主任务 | 用户快速进入维修服务 [截图 1] | ✓ 明确 |
+| 子任务 | 预约维修、寄修服务 [截图 1] | ✓ 明确 |
+| 分支流程 | [缺失] 不同维修类型分流逻辑 [缺失] | ✗ 缺失 |
+"""
+    result = check_traceability_gap_analysis(content)
     assert result["pass_rate"] == 1.0, f"issues={result['issues']}, checked={result['checked']}"
