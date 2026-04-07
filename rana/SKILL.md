@@ -436,6 +436,8 @@ ux-requirement-analysis/
 
 在 change-log 的 `**影响**` 字段注明需要回写的位置（如「更新 gap-analysis.md → 边界条件表格」），但**不必在本阶段实际修改 gap-analysis.md**——Stage 4 将直接基于 input-structured.md + change-log.md 综合评估，gap-analysis.md 保持 Stage 2 时的原始缺口记录状态，便于追溯。
 
+**例外：需求名称变更须立即同步**。若某 CHG 条目修正了需求名称（即 `gap-analysis.md` 头部的「需求名称」字段），**必须同步更新 `gap-analysis.md` 和 `input-structured.md` 头部的「需求名称」字段**，保持文件间一致性。
+
 **change-log 编写规范：**
 
 **写每条新 CHG 条目前，执行以下步骤：**

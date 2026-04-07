@@ -3,12 +3,7 @@ from pathlib import Path
 
 
 def _load_validator():
-    p = (
-        Path(__file__).parent.parent.parent
-        / "ux-requirement-analysis"
-        / "scripts"
-        / "quality-validator.py"
-    )
+    p = Path(__file__).parent.parent.parent / "rana" / "scripts" / "quality-validator.py"
     spec = importlib.util.spec_from_file_location("quality_validator", p)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
@@ -54,14 +49,15 @@ def test_card_fields_fail_missing_one():
     assert "需求拆解" in result["missing"]
 
 
-def test_card_fields_warn_extra():
+def test_card_fields_extra_does_not_downgrade():
+    """扩展字段（模板增强）不应导致状态降级——全部必填字段存在时应为 PASS"""
     extra_rows = (
         "| **自定义字段A** | 额外内容 | [PRD第1节] |\n| **自定义字段B** | 额外内容 | [PRD第1节] |\n"
     )
     content = FULL_CARD.rstrip() + "\n" + extra_rows
     result = check_card_fields(content)
-    assert result["status"] == "WARN"
-    assert len(result["extra"]) == 2
+    assert result["status"] == "PASS", f"扩展字段不应降级，实际 status={result['status']}"
+    assert len(result["extra"]) == 2  # extra 列表仍记录，但不影响状态
 
 
 def test_card_fields_no_section():

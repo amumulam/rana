@@ -699,10 +699,9 @@ def check_card_fields(content: str) -> dict:
     missing = [f for f in REQUIRED_CARD_FIELDS if f not in found_set]
     extra = [f for f in found_fields if f not in required_set]
 
+    # 扩展字段（extra）是模板增强，不视为问题；仅 missing 才降级
     if missing:
         status = "FAIL"
-    elif extra:
-        status = "WARN"
     else:
         status = "PASS"
 
@@ -931,15 +930,8 @@ def run_validation(analysis_dir: Path):
             total = len(card["found"])
             required_count = len(REQUIRED_CARD_FIELDS)
             if card["status"] == "PASS":
-                print(f"  字段完整性: ✓ PASS（{total}/{required_count}）")
-            elif card["status"] == "WARN":
-                extra_preview = ", ".join(card["extra"][:3])
-                if len(card["extra"]) > 3:
-                    extra_preview += f"... 共{len(card['extra'])}个"
-                print(
-                    f"  字段完整性: ⚠ WARN（{required_count}/{required_count} 必填字段存在，"
-                    f"另有 {len(card['extra'])} 个扩展字段：{extra_preview}）"
-                )
+                # 扩展字段不计入问题数，输出时仅显示必填字段数量
+                print(f"  字段完整性: ✓ PASS（{required_count}/{required_count} 必填字段）")
             else:  # FAIL
                 missing_fields = card["missing"]
                 missing_preview = "、".join(missing_fields[:5])
