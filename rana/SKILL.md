@@ -656,6 +656,16 @@ AI 自评通过，可进入 Stage 5 生成 final-analysis.md。
 
 ---
 
+### Stage 5 完成后必须执行：主动向用户呈现完整报告
+
+`final-analysis.md` 生成并保存后，**必须将完整内容直接输出给用户**（不得只说「已生成」或「请查看文件」）。
+
+输出完成后，在报告末尾附上一句结束语：
+
+> 以上是本次需求分析的完整报告。所有 P0 缺口已补完，可进入设计分析阶段。如需调整任何内容，请直接告知。
+
+---
+
 ## Stage 6：程序化验证
 
 **前提**：`final-analysis.md` 已生成（Stage 5 完成）
@@ -668,7 +678,10 @@ python3 ~/.agents/skills/rana/scripts/quality-validator.py <分析目录>
 
 > 服务器环境路径：`python3 ~/.openclaw/skills/rana/scripts/quality-validator.py <分析目录>`
 
-**解读验证器输出：**
+**重要：验证器输出只用于内部质检，禁止向用户原文展示命令行输出内容。**  
+验证结果以人类可读的质量结论形式体现在 `quality-report.md` 的「Stage 6 程序化验证结果」节中。
+
+**解读验证器输出（仅供 AI 内部使用）：**
 
 | 验证器输出 | 含义 |
 |-----------|------|
@@ -686,9 +699,26 @@ python3 ~/.agents/skills/rana/scripts/quality-validator.py <分析目录>
 
 **处理规则：**
 
-- **退出码 0** → 更新 `quality-report.md` 补充程序化验证结果，整体状态确认为 PASS
-- **退出码 1 且问题可修复**（如补充来源标注、补写缺失字段）→ 修复后重新运行验证器
-- **退出码 1 且问题不可修复**（如信息本身缺失）→ 在 `quality-report.md` 中补充程序化验证结果，保持已知风险标注
+- **退出码 0** → 更新 `quality-report.md` 补充程序化验证结果（只写结论，不抄命令行输出），整体状态确认为 PASS
+- **退出码 1 且问题可修复**（如补充来源标注、补写缺失字段）→ 静默修复后重新运行验证器，不向用户说明技术细节
+- **退出码 1 且问题不可修复**（如信息本身缺失）→ 在 `quality-report.md` 中以「已知风险」形式注明，不向用户输出原始错误信息
+
+**`quality-report.md` Stage 6 节的写法示例（对用户可见）：**
+
+```markdown
+## Stage 6 程序化验证结果
+
+**验证日期**：YYYY-MM-DD  
+**整体状态**：✓ PASS
+
+| 文件 | 来源追溯 | 字段/章节完整性 | 模糊表述 |
+|------|---------|--------------|---------|
+| input-structured.md | ✓ PASS | — | ✓ PASS |
+| gap-analysis.md | ✓ PASS | — | — |
+| final-analysis.md | ✓ PASS | ✓ PASS | ✓ PASS |
+
+验证通过，可交付设计分析阶段。
+```
 
 **若 Bash 不可用：** 在 `quality-report.md` 中注明「程序化验证未执行（环境不支持 Bash）」，以 Stage 4 AI 自评结果为最终状态。
 
