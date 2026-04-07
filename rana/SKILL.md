@@ -54,14 +54,19 @@ Stage 6: 程序化验证          → 更新 quality-report.md
 
 ```
 <workspace>/
-└── ux-requirement-analysis/              ← 语义容器（所有需求分析的统一存放位置）
-    └── <需求名称>/
-        └── <YYYY-MM-DD>/
-            ├── input-structured.md       ← Stage 1 输出
-            ├── gap-analysis.md           ← Stage 2 输出
-            ├── change-log.md             ← Stage 3 输出
-            ├── quality-report.md         ← Stage 4 输出
-            └── final-analysis.md         ← Stage 5 输出
+├── ux-requirement-analysis/              ← 语义容器（所有需求分析的统一存放位置）
+│   └── <需求名称>/
+│       └── <YYYY-MM-DD>/
+│           ├── input-structured.md       ← Stage 1 输出
+│           ├── gap-analysis.md           ← Stage 2 输出
+│           ├── change-log.md             ← Stage 3 输出
+│           ├── quality-report.md         ← Stage 4 输出
+│           └── final-analysis.md         ← Stage 5 输出
+└── knowledge/                            ← 产品知识库（见下方说明）
+    ├── _temp/                            ← AI 临时暂存，用户确认后移入正式目录
+    └── <产品线>/                         ← 如 vivo-service/、vivo-mall/
+        ├── overview.md                   ← 产品线概览（可选）
+        └── *.md                          ← 其他业务规则文件（自由命名）
 ```
 
 例如，需求名为「订单搜索优化」，分析日期为 2026-04-01，则完整路径为：
@@ -76,6 +81,13 @@ ux-requirement-analysis/
     ├── 2026-04-15/   ← 第二次分析（补充确认后重启）
     └── 2026-05-03/   ← 第三次分析（需求调整后重新分析）
 ```
+
+**knowledge 目录约定：**
+
+- 产品线目录名由设计师自由定义（如 `vivo-service`、`vivo-mall`），AI 靠目录名 + 文件首行标题判断相关性
+- 文件命名不强制，推荐语义化命名（如 `member-system.md`、`device-rules.md`）
+- 初期由设计师手动维护；AI 在 Stage 5 结束后可将新发现的固有知识追加到对应文件（须用户确认）
+- `_temp/` 由 AI 自动管理，用户无需手动操作
 
 **若用户指定了路径，以用户指定路径为准。**
 
