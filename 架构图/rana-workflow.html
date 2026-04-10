@@ -1,0 +1,422 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.flow{display:flex;flex-direction:column;align-items:center;gap:0;padding:16px 0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;width:800px;margin:0 auto}
+.phase-label{font-size:11px;font-weight:500;letter-spacing:.5px;color:#666;text-transform:uppercase;margin:14px 0 6px;align-self:flex-start;padding-left:12px}
+.nd{border-radius:10px;padding:10px 14px;text-align:center;width:420px;position:relative;border-width:1px;border-style:solid;background:#fff}
+.nd-title{font-size:13px;font-weight:500;line-height:1.3}
+.nd-sub{font-size:11px;line-height:1.4;margin-top:3px;opacity:.85}
+.nd-fmt{font-size:10px;font-family:"SF Mono",Monaco,Consolas,monospace;padding:2px 6px;border-radius:4px;margin-top:5px;display:inline-block}
+.nd-start{background:#EEEDFE;border-color:#534AB7;color:#3C3489}
+.nd-start .nd-fmt{background:#CECBF6;color:#3C3489}
+.nd-auto{background:#f8f8f8;border-color:#ccc;color:#333}
+.nd-auto .nd-fmt{background:#e8e8e8;color:#666}
+.nd-human{background:#E1F5EE;border-color:#0F6E56;color:#085041;position:relative}
+.nd-human .nd-fmt{background:#9FE1CB;color:#085041}
+.nd-human::before{content:"";position:absolute;top:-3px;left:-3px;right:-3px;bottom:-3px;border:1.5px dashed #0F6E56;border-radius:12px;pointer-events:none}
+.nd-out{background:#FAECE7;border-color:#993C1D;color:#712B13}
+.nd-out .nd-fmt{background:#F5C4B3;color:#712B13}
+.nd-check{background:#FFF9E6;border-color:#D4A500;color:#8B6914}
+.nd-check .nd-fmt{background:#FFE4A0;color:#8B6914}
+.nd-kb{background:#E6F1FB;border-color:#185FA5;color:#0C447C;width:180px;font-size:11px;padding:8px 10px}
+.nd-kb .nd-title{font-size:11px}
+.nd-kb .nd-sub{font-size:10px;font-family:"SF Mono",Monaco,Consolas,monospace}
+.nd-fail{background:#FDEAEA;border-color:#C62828;color:#8B0000}
+.nd-fail .nd-fmt{background:#F8BBD0;color:#8B0000}
+.arrow{width:2px;height:18px;background:#ccc;position:relative;margin:0 auto}
+.arrow::after{content:"";position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #ccc}
+.step-num{position:absolute;top:8px;left:10px;font-size:9px;font-weight:500;opacity:.5}
+.kb-row{display:flex;align-items:center;gap:8px;width:420px;justify-content:center}
+.kb-connector{border-top:1px dashed #185FA5;width:20px;flex-shrink:0;opacity:.5}
+.human-tag{font-size:9px;font-weight:500;color:#0F6E56;background:#E1F5EE;border:1px solid #0F6E56;padding:0 5px;border-radius:3px;display:inline-block;margin-bottom:4px}
+.auto-tag{font-size:9px;font-weight:500;color:#3C3489;background:#EEEDFE;border:1px solid #534AB7;padding:0 5px;border-radius:3px;display:inline-block;margin-bottom:4px}
+.check-tag{font-size:9px;font-weight:500;color:#8B6914;background:#FFF9E6;border:1px solid #D4A500;padding:0 5px;border-radius:3px;display:inline-block;margin-bottom:4px}
+.fail-tag{font-size:9px;font-weight:500;color:#C62828;background:#FDEAEA;border:1px solid #C62828;padding:0 5px;border-radius:3px;display:inline-block;margin-bottom:4px}
+.detail-box{border:1px solid #ddd;border-radius:8px;background:#f8f8f8;padding:10px 14px;margin-top:6px;text-align:left;width:420px}
+.dt-title{font-size:11px;font-weight:500;color:#333;margin-bottom:6px}
+.dt-row{display:flex;gap:6px;font-size:10.5px;line-height:1.5;padding:3px 0;border-bottom:1px solid #eee;color:#333}
+.dt-row:last-child{border-bottom:none}
+.dt-label{min-width:70px;flex-shrink:0;font-weight:500;color:#666}
+.tag-must{font-size:8px;background:#fee;color:#c00;padding:0 4px;border-radius:3px;font-weight:500;vertical-align:middle}
+.tag-opt{font-size:8px;background:#f0f0f0;color:#666;padding:0 4px;border-radius:3px;font-weight:500;vertical-align:middle}
+.sub-chain{border:1px solid #ddd;border-radius:8px;background:#f8f8f8;padding:10px 14px;margin-top:6px;text-align:left;width:420px}
+.sub-step{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid #eee}
+.sub-step:last-child{border-bottom:none}
+.ss-num{width:20px;height:20px;min-width:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0}
+.ss-1{background:#EEEDFE;color:#3C3489}
+.ss-2{background:#FFF3E0;color:#E65100}
+.ss-3{background:#F3E5F5;color:#6A1B9A}
+.ss-4{background:#E8F5E9;color:#2E7D32}
+.ss-5{background:#FCE4EC;color:#C2185B}
+.ss-6{background:#EFEBE9;color:#5D4037}
+.ss-r{background:#E6F1FB;color:#185FA5}
+.ss-f{background:#FDEAEA;color:#C62828}
+.ss-body{flex:1}
+.ss-title{font-size:11px;font-weight:500;color:#333}
+.config-row{display:flex;gap:6px;margin-top:6px;width:420px}
+.config-chip{flex:1;border:1px solid #ddd;border-radius:6px;padding:6px 8px;text-align:center;background:#f8f8f8}
+.cc-label{font-size:9px;color:#666;letter-spacing:.3px}
+.cc-file{font-size:10px;font-family:"SF Mono",Monaco,Consolas,monospace;color:#333;margin-top:2px;font-weight:500}
+.cc-desc{font-size:9px;color:#666;margin-top:1px;line-height:1.3}
+.cc-blue{border-color:#185FA5}.cc-blue .cc-label{color:#185FA5}
+.trigger{border:1px solid #ddd;border-radius:6px;padding:6px 10px;width:420px;text-align:left;background:#f8f8f8;margin-top:4px;margin-bottom:4px}
+.trigger-title{font-size:9px;font-weight:500;color:#666;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.trigger-step{display:flex;gap:6px;align-items:flex-start;padding:3px 0;font-size:10px;color:#666;line-height:1.3}
+.trigger-step b{color:#333;font-weight:500}
+.tw{font-size:8px;font-weight:500;padding:1px 4px;border-radius:3px;flex-shrink:0;margin-top:1px;min-width:50px;text-align:center}
+.tw-cc{background:#EEEDFE;color:#3C3489}
+.tw-skill{background:transparent;border:1px solid #534AB7;color:#534AB7}
+.tw-human{background:#E1F5EE;color:#085041}
+.tw-auto{background:#e8e8e8;color:#666}
+.tw-check{background:#FFF9E6;color:#8B6914}
+.tw-fail{background:#FDEAEA;color:#C62828}
+.tw-opt{background:#f0f0f0;color:#666}
+.skill-wrap{border:2px solid #534AB7;border-radius:10px;padding:12px 14px;margin-top:6px;width:420px;text-align:left;background:#fff;position:relative}
+.skill-wrap-label{position:absolute;top:-10px;left:14px;font-size:10px;font-weight:500;color:#534AB7;background:#fff;padding:0 6px;letter-spacing:.3px;font-family:"SF Mono",Monaco,Consolas,monospace}
+.master-wrap{border:3px solid #534AB7;border-radius:16px;padding:20px 16px;width:800px;position:relative;background:#fff;margin-top:8px}
+.master-wrap-label{position:absolute;top:-11px;left:20px;font-size:11px;font-weight:500;color:#534AB7;background:#fff;padding:0 8px;letter-spacing:.3px;font-family:"SF Mono",Monaco,Consolas,monospace}
+.build-note{border-left:3px solid #f0ad4e;padding:6px 12px;margin-top:5px;width:420px;text-align:left;font-size:10px;color:#8a6d3b;line-height:1.5;background:#fcf8e3;border-radius:0 4px 4px 0}
+.build-note b{font-weight:500}
+.decision-box{border:1px solid #ddd;border-radius:8px;background:#f0f0f0;padding:8px 12px;margin-top:6px;width:420px;text-align:left}
+.dec-title{font-size:10px;font-weight:500;color:#333;margin-bottom:4px}
+.dec-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:10px}
+.dec-icon{width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0}
+.dec-pass{background:#E8F5E9;color:#2E7D32}
+.dec-warn{background:#FFF9E6;color:#8B6914}
+.dec-fail{background:#FDEAEA;color:#C62828}
+.dec-label{color:#666}
+.dec-action{color:#333;font-weight:500}
+.dec-arrow{color:#999;margin-left:4px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;padding:12px;border-radius:8px;background:#f8f8f8;margin-top:16px;width:420px;font-size:10px;color:#666}
+.legend-item{display:flex;align-items:center;gap:5px}
+.legend-dot{width:10px;height:10px;border-radius:3px;border:1px solid}
+.version-tag{font-size:10px;font-weight:500;color:#534AB7;background:#fff;border:1px solid #534AB7;padding:4px 8px;border-radius:4px;margin-bottom:8px}
+
+@media(prefers-color-scheme:dark){
+.nd-start{background:#26215C;border-color:#7F77DD;color:#CECBF6}.nd-start .nd-fmt{background:#3C3489;color:#CECBF6}
+.nd-human{background:#04342C;border-color:#5DCAA5;color:#9FE1CB}.nd-human .nd-fmt{background:#085041;color:#9FE1CB}.nd-human::before{border-color:#5DCAA5}
+.nd-out{background:#4A1B0C;border-color:#F0997B;color:#F5C4B3}.nd-out .nd-fmt{background:#712B13;color:#F5C4B3}
+.nd-check{background:#3D3200;border-color:#FFB300;color:#FFE082}.nd-check .nd-fmt{background:#8B6914;color:#FFE082}
+.nd-kb{background:#042C53;border-color:#85B7EB;color:#B5D4F4}.nd-kb .nd-sub{color:#85B7EB}
+.nd-fail{background:#4A1B0C;border-color:#EF9A9A;color:#FFCDD2}.nd-fail .nd-fmt{background:#8B0000;color:#FFCDD2}
+.human-tag{color:#5DCAA5;background:#04342C;border-color:#5DCAA5}
+.auto-tag{color:#AFA9EC;background:#26215C;border-color:#7F77DD}
+.check-tag{color:#FFE082;background:#3D3200;border-color:#FFB300}
+.fail-tag{color:#EF9A9A;background:#4A1B0C;border-color:#C62828}
+.tag-must{background:#501313;color:#F09595}
+.ss-1{background:#26215C;color:#CECBF6}
+.ss-2{background:#4A3700;color:#FFB74D}
+.ss-3{background:#3D1466;color:#CE93D8}
+.ss-4{background:#1B5E20;color:#A5D6A7}
+.ss-5{background:#6A1B4D;color:#F48FB1}
+.ss-6{background:#3E2723;color:#BCAAA4}
+.ss-r{background:#042C53;color:#85B7EB}
+.ss-f{background:#4A1B0C;color:#EF9A9A}
+.cc-blue{border-color:#85B7EB}.cc-blue .cc-label{color:#85B7EB}
+.tw-cc{background:#26215C;color:#CECBF6}
+.tw-skill{border-color:#7F77DD;color:#AFA9EC}
+.tw-human{background:#04342C;color:#9FE1CB}
+.tw-check{background:#3D3200;color:#FFE082}
+.tw-fail{background:#4A1B0C;color:#EF9A9A}
+.dec-pass{background:#1B5E20;color:#A5D6A7}
+.dec-warn{background:#3D3200;color:#FFE082}
+.dec-fail{background:#4A1B0C;color:#EF9A9A}
+.skill-wrap{border-color:#7F77DD}.skill-wrap-label{color:#AFA9EC;background:#1a1a1a}
+.master-wrap{border-color:#7F77DD}.master-wrap-label{color:#AFA9EC;background:#1a1a1a}
+.version-tag{border-color:#7F77DD;color:#AFA9EC}
+}
+</style>
+
+<div class="flow">
+
+<!-- VERSION & CONFIG -->
+<div class="version-tag">rana v0.1.0</div>
+<div class="config-row">
+<div class="config-chip cc-blue"><div class="cc-label">Skill 定义</div><div class="cc-file">rana/SKILL.md</div><div class="cc-desc">6阶段工作流 + 5步反驳机制</div></div>
+<div class="config-chip cc-blue"><div class="cc-label">验证器</div><div class="cc-file">scripts/quality-validator.py</div><div class="cc-desc">6维度程序化质检（992行）</div></div>
+</div>
+<div class="config-row">
+<div class="config-chip cc-blue"><div class="cc-label">引用文件</div><div class="cc-file">references/*.md</div><div class="cc-desc">33项检查清单 + 5维度门禁 + UX方法</div></div>
+<div class="config-chip cc-blue"><div class="cc-label">模板文件</div><div class="cc-file">templates/*.md</div><div class="cc-desc">5项交付物 A-E 空白模板</div></div>
+</div>
+<div class="arrow"></div>
+
+<!-- MASTER SKILL WRAPPER -->
+<div class="master-wrap">
+<div class="master-wrap-label">skills/rana/SKILL.md — UX 需求分析主 Skill</div>
+
+<div style="display:flex;flex-direction:column;align-items:center;gap:0;padding:4px 0">
+
+<!-- ===== STAGE 1 ===== -->
+<div class="phase-label">阶段一 · 输入解析与结构化</div>
+
+<div class="nd nd-start" style="width:320px">
+<span class="step-num">①</span>
+<div class="nd-title">设计师输入</div>
+<div class="nd-sub"><b>PRD 文本 / PDF / 截图</b><br>Figma 链接/文件暂不支持，引导截图替代</div>
+<div class="nd-fmt">自然语言 prompt + 文件路径</div>
+</div>
+<div class="detail-box">
+<div class="dt-title">输入约束</div>
+<div class="dt-row"><span class="dt-label">支持格式</span>PRD 文本、.pdf 文件、界面截图</div>
+<div class="dt-row"><span class="dt-label"><span class="tag-opt">可选</span> 知识库</span>在线 zh-context 站点检索</div>
+<div class="dt-row"><span class="dt-label"><span class="tag-must">必须</span> 来源标注</span>每行内容需标注 [PRD第X节]、[截图X] 等</div>
+</div>
+
+<div class="kb-row">
+<div style="width:220px;display:flex;flex-direction:column;align-items:center">
+<div class="trigger-step"><span class="tw tw-skill">主 Skill</span>启动知识库检索 R1-R4</div>
+</div>
+<div class="kb-connector"></div>
+<div class="nd nd-kb"><div class="nd-title">📚 RAG 知识库</div><div class="nd-sub">http://10.109.65.184:3000/<br>zh-context/</div></div>
+</div>
+
+<div class="skill-wrap">
+<div class="skill-wrap-label">Stage 1 子步骤</div>
+<div class="sub-chain">
+<div class="sub-step"><div class="ss-num ss-1">1a</div><div class="ss-body"><div class="ss-title">知识库检索 R1-R4<br>扫描产品线 → 匹配 → 读入文档 → 用户纠正</div></div></div>
+<div class="sub-step"><div class="ss-num ss-1">1b</div><div class="ss-body"><div class="ss-title">接收输入：PRD / PDF / 截图</div></div></div>
+<div class="sub-step"><div class="ss-num ss-1">1c</div><div class="ss-body"><div class="ss-title">提取信息 & 标注来源<br>业务背景 / 功能清单 / 约束 / 缺失项</div></div></div>
+<div class="sub-step"><div class="ss-num ss-1">1d</div><div class="ss-body"><div class="ss-title">输出 input-structured.md</div></div></div>
+</div>
+</div>
+
+<div class="trigger">
+<div class="trigger-title">触发 ①→②</div>
+<div class="trigger-step"><span class="tw tw-auto">自动校验</span>input-structured.md 已生成</div>
+<div class="trigger-step"><span class="tw tw-skill">主 Skill</span>加载 references/analysis-checklist.md（33项），进入阶段二</div>
+</div>
+
+<div class="arrow"></div>
+
+<!-- ===== STAGE 2 ===== -->
+<div class="phase-label">阶段二 · 需求缺口分析与拆解</div>
+
+<div class="kb-row">
+<div style="width:220px;display:flex;flex-direction:column;align-items:center">
+<span class="auto-tag">自动 · <span class="tag-opt">Step 2.5 人工确认</span></span>
+<div class="nd nd-auto">
+<span class="step-num">②</span>
+<div class="nd-title">需求缺口分析与拆解</div>
+<div class="nd-sub">33项检查清单 + 7维度拆解 + 主路径确认</div>
+<div class="nd-fmt">输出: gap-analysis.md</div>
+</div>
+<div class="sub-chain">
+<div class="sub-step"><div class="ss-num ss-2">2a</div><div class="ss-body"><div class="ss-title">33项检查清单逐项检查</div></div></div>
+<div class="sub-step"><div class="ss-num ss-2">2b</div><div class="ss-body"><div class="ss-title">UX 分析方法：五问法 / X-Y Problem / 场景还原</div></div></div>
+<div class="sub-step"><div class="ss-num ss-2">2c</div><div class="ss-body"><div class="ss-title">7维度拆解：主任务/子任务/入口/分支/异常/状态/依赖</div></div></div>
+<div class="sub-step"><div class="ss-num ss-2">2d</div><div class="ss-body"><div class="ss-title">Step 2.5 主路径确认（可跳过）</div></div></div>
+<div class="sub-step"><div class="ss-num ss-2">2e</div><div class="ss-body"><div class="ss-title">补全其余 4 维度 → 输出 gap-analysis.md</div></div></div>
+</div>
+</div>
+<div class="kb-connector"></div>
+<div class="nd nd-kb"><div class="nd-title">📚 references/</div><div class="nd-sub">analysis-checklist.md<br>ux-analysis-methods.md</div></div>
+</div>
+
+<!-- Step 2.5 Detail -->
+<div class="skill-wrap">
+<div class="skill-wrap-label">Step 2.5 主路径确认（人工介入）</div>
+<div class="trigger-step"><span class="tw tw-human">设计师</span>确认/修正/跳过主路径（主任务/子任务/入口）</div>
+<div class="trigger-step"><span class="tw tw-skill">主 Skill</span>用户确认 → 更新主路径 → 输出确认单 → 补全其余维度</div>
+<div class="trigger-step"><span class="tw tw-auto">状态</span>跳过 → 直接补全 | 修正 → 继续澄清 → Stage 3</div>
+</div>
+
+<div class="trigger">
+<div class="trigger-title">触发 ②→③</div>
+<div class="trigger-step"><span class="tw tw-auto">自动校验</span>gap-analysis.md 已生成 + 缺口汇总列表非空</div>
+<div class="trigger-step"><span class="tw tw-skill">主 Skill</span>按影响「高→中→低」顺序，进入阶段三逐项澄清</div>
+</div>
+
+<div class="arrow"></div>
+
+<!-- ===== STAGE 3 ===== -->
+<div class="phase-label">阶段三 · 协作对话补充</div>
+
+<div>
+<span class="human-tag">人工审批 · 必须</span>
+<div class="nd nd-human" style="min-width:320px">
+<span class="step-num">③</span>
+<div class="nd-title">设计师逐项确认缺口</div>
+<div class="nd-sub">
+<b>a.</b> 确认理解：复述需求目标/用户/场景<br>
+<b>b.</b> 呈现缺口：按影响高→中→低逐条提出<br>
+<b>c.</b> 用户反驳 → 5步流程<br>
+<b>d.</b> 循环确认 → 写入 CHG 条目
+</div>
+<div class="nd-fmt">输出: change-log.md</div>
+</div>
+</div>
+
+<!-- 5-step dispute handling -->
+<div class="skill-wrap">
+<div class="skill-wrap-label">5步反驳处理流程（新增 v0.1.0）</div>
+<div class="trigger-title">当用户反对缺口描述/建议时触发</div>
+<div class="sub-chain" style="margin-top:4px">
+<div class="sub-step"><div class="ss-num ss-3">①</div><div class="ss-body"><div class="ss-title">确认理解："我理解你的想法是 XXX，对吗？"</div></div></div>
+<div class="sub-step"><div class="ss-num ss-3">②</div><div class="ss-body"><div class="ss-title">表达专业判断："从交互设计角度，我担心 XXX..."</div></div></div>
+<div class="sub-step"><div class="ss-num ss-3">③</div><div class="ss-body"><div class="ss-title">引导思考：提出场景反问</div></div></div>
+<div class="sub-step"><div class="ss-num ss-3">④</div><div class="ss-body"><div class="ss-title">对比分析：列出两方向优劣势</div></div></div>
+<div class="sub-step"><div class="ss-num ss-3">⑤</div><div class="ss-body"><div class="ss-title">共同决策：调整建议 或 添加「风险备注」字段</div></div></div>
+</div>
+<div class="trigger-step"><span class="tw tw-fail">禁止</span>立即同意 / "好的按你说的来" / 放弃专业判断</div>
+</div>
+
+<div class="trigger">
+<div class="trigger-title">触发 ③→④</div>
+<div class="trigger-step"><span class="tw tw-human">设计师</span>"以上已全部确认" 或 "还有补充" → 循环至穷尽</div>
+<div class="trigger-step"><span class="tw tw-skill">主 Skill</span>生成 change-log.md，进入阶段四质量门禁</div>
+</div>
+
+<div class="arrow"></div>
+
+<!-- ===== STAGE 4 ===== -->
+<div class="phase-label">阶段四 · 质量门禁验证（AI 自评）</div>
+
+<div class="kb-row" style="justify-content:center">
+<div style="flex:1;max-width:310px;display:flex;flex-direction:column;align-items:center">
+<span class="check-tag">自动决策</span>
+<div class="nd nd-check">
+<span class="step-num">④</span>
+<div class="nd-title">5维度质量门禁自评</div>
+<div class="nd-sub">正确性/完整性/可执行性/一致性/可验证性</div>
+<div class="nd-fmt">输出: quality-report.md（AI自评结果）</div>
+</div>
+</div>
+<div class="kb-connector"></div>
+<div class="nd nd-kb"><div class="nd-title">📚 references/</div><div class="nd-sub">quality-gates.md<br>5维度判定标准</div></div>
+</div>
+
+<!-- Decision Box -->
+<div class="decision-box">
+<div class="dec-title">决策分支</div>
+<div class="dec-row"><div class="dec-icon dec-pass">✓</div><div class="dec-label">全部 PASS</div><div class="dec-arrow">→</div><div class="dec-action">进入 Stage 5</div></div>
+<div class="dec-row"><div class="dec-icon dec-warn">⚠</div><div class="dec-label">仅 WARN</div><div class="dec-arrow">→</div><div class="dec-action">标注风险点 → 进入 Stage 5</div></div>
+<div class="dec-row"><div class="dec-icon dec-fail">✗</div><div class="dec-label">FAIL P0未补完</div><div class="dec-arrow">→</div><div class="dec-action">返回 Stage 3 补充</div></div>
+<div class="dec-row"><div class="dec-icon dec-fail">✗</div><div class="dec-label">FAIL 且穷尽</div><div class="dec-arrow">→</div><div class="dec-action">标注「信息不足」→ 进入 Stage 5（质量状态保持 FAIL）</div></div>
+</div>
+
+<div class="trigger">
+<div class="trigger-title">触发 ④→⑤</div>
+<div class="trigger-step"><span class="tw tw-check">质量门禁</span>整体状态 PASS 或 仅 WARN</div>
+<div class="trigger-step"><span class="tw tw-skill">主 Skill</span>加载 references/templates/*.md，进入阶段五整合输出</div>
+</div>
+
+<div class="arrow"></div>
+
+<!-- ===== STAGE 5 ===== -->
+<div class="phase-label">阶段五 · 整合输出</div>
+
+<div class="nd nd-out">
+<span class="step-num">⑤</span>
+<div class="nd-title">生成 final-analysis.md</div>
+<div class="nd-sub">跨文件同步 + 5项交付物 + 主动呈现完整报告</div>
+<div class="nd-fmt">输出: final-analysis.md</div>
+</div>
+
+<!-- 5 Deliverables -->
+<div style="display:flex;justify-content:center;width:420px;margin-top:4px">
+<svg width="280" height="28" viewBox="0 0 280 28"><line x1="140" y1="0" x2="140" y2="8" stroke="#ccc" stroke-width="1.5"/><line x1="30" y1="8" x2="250" y2="8" stroke="#ccc" stroke-width="1.5"/><line x1="30" y1="8" x2="30" y2="26" stroke="#ccc" stroke-width="1.5"/><line x1="90" y1="8" x2="90" y2="26" stroke="#ccc" stroke-width="1.5"/><line x1="150" y1="8" x2="150" y2="26" stroke="#ccc" stroke-width="1.5"/><line x1="210" y1="8" x2="210" y2="26" stroke="#ccc" stroke-width="1.5"/><polygon points="26,24 30,28 34,24" fill="#ccc"/><polygon points="86,24 90,28 94,24" fill="#ccc"/><polygon points="146,24 150,28 154,24" fill="#ccc"/><polygon points="206,24 210,28 214,24" fill="#ccc"/></svg>
+</div>
+
+<div style="display:flex;gap:4px;width:420px;justify-content:center;flex-wrap:wrap">
+<div style="width:76px;display:flex;flex-direction:column;align-items:center">
+<div class="nd nd-out" style="width:100%;padding:6px 8px"><div class="nd-title" style="font-size:9px">交付物 A</div><div class="nd-sub" style="font-size:8px">需求分析卡</div></div>
+</div>
+<div style="width:76px;display:flex;flex-direction:column;align-items:center">
+<div class="nd nd-out" style="width:100%;padding:6px 8px"><div class="nd-title" style="font-size:9px">交付物 B</div><div class="nd-sub" style="font-size:8px">需求拆解清单</div></div>
+</div>
+<div style="width:76px;display:flex;flex-direction:column;align-items:center">
+<div class="nd nd-out" style="width:100%;padding:6px 8px"><div class="nd-title" style="font-size:9px">交付物 C</div><div class="nd-sub" style="font-size:8px">场景与边界</div></div>
+</div>
+<div style="width:76px;display:flex;flex-direction:column;align-items:center">
+<div class="nd nd-out" style="width:100%;padding:6px 8px"><div class="nd-title" style="font-size:9px">交付物 D</div><div class="nd-sub" style="font-size:8px">待澄清清单</div></div>
+</div>
+<div style="width:76px;display:flex;flex-direction:column;align-items:center">
+<div class="nd nd-out" style="width:100%;padding:6px 8px"><div class="nd-title" style="font-size:9px">交付物 E</div><div class="nd-sub" style="font-size:8px">需求分析结论</div></div>
+</div>
+</div>
+
+<div class="trigger-step"><span class="tw tw-skill">主 Skill</span>主动向用户呈现完整报告（不得只说"已生成"）</div>
+
+<!-- Knowledge Write-back -->
+<div class="skill-wrap">
+<div class="skill-wrap-label">知识库回写 W1-W4（可选）</div>
+<div class="trigger-step"><span class="tw tw-opt">触发条件</span>发现可复用的产品固有知识</div>
+<div class="sub-chain" style="margin-top:4px">
+<div class="sub-step"><div class="ss-num ss-r">W1</div><div class="ss-body"><div class="ss-title">从 change-log + final-analysis 识别固有知识</div></div></div>
+<div class="sub-step"><div class="ss-num ss-r">W2</div><div class="ss-body"><div class="ss-title">写入 knowledge/_temp/YYYY-MM-DD-需求名.md</div></div></div>
+<div class="sub-step"><div class="ss-num ss-r">W3</div><div class="ss-body"><div class="ss-title">向用户展示 → 确认写入路径 或 跳过</div></div></div>
+<div class="sub-step"><div class="ss-num ss-r">W4</div><div class="ss-body"><div class="ss-title">用户确认 → 移入 knowledge/<产品线>/ 或 删除 _temp/</div></div></div>
+</div>
+</div>
+
+<div class="trigger">
+<div class="trigger-title">触发 ⑤→⑥</div>
+<div class="trigger-step"><span class="tw tw-auto">自动校验</span>final-analysis.md 已生成</div>
+<div class="trigger-step"><span class="tw tw-skill">主 Skill</span>进入阶段六，运行程序化验证器</div>
+</div>
+
+<div class="arrow"></div>
+
+<!-- ===== STAGE 6 ===== -->
+<div class="phase-label">阶段六 · 程序化验证</div>
+
+<div class="kb-row">
+<div style="width:220px;display:flex;flex-direction:column;align-items:center">
+<span class="auto-tag">自动 · 程序化质检</span>
+<div class="nd nd-auto">
+<span class="step-num">⑥</span>
+<div class="nd-title">运行 quality-validator.py</div>
+<div class="nd-sub">检查 6 个维度：文件结构/来源追溯/字段完整性<br>章节完整性/模糊表述/验证器路径</div>
+<div class="nd-fmt">python3 ~/.agents/skills/rana/scripts/quality-validator.py</div>
+</div>
+</div>
+<div class="kb-connector"></div>
+<div class="nd nd-kb"><div class="nd-title">📋 退出码</div><div class="nd-sub">0 = 全部通过<br>1 = 存在 FAIL</div></div>
+</div>
+
+<!-- Validator Check Items -->
+<div class="sub-chain">
+<div class="dt-title">验证器检查项</div>
+<div class="dt-row"><span class="dt-label">文件结构</span>5/5 文件存在（input/gap/change/quality/final）</div>
+<div class="dt-row"><span class="dt-label">来源追溯</span>每文件标注率 ≥ 80%</div>
+<div class="dt-row"><span class="dt-label">字段完整性</span>交付物 A 14 个必填字段齐全</div>
+<div class="dt-row"><span class="dt-label">章节完整性</span>交付物 A-E 5 个章节存在</div>
+<div class="dt-row"><span class="dt-label">模糊表述</span>无"适当"/"合理"/"友好"/"TBD"</div>
+</div>
+
+<!-- Decision Box -->
+<div class="decision-box">
+<div class="dec-title">处理规则</div>
+<div class="dec-row"><div class="dec-icon dec-pass">0</div><div class="dec-label">退出码 0</div><div class="dec-arrow">→</div><div class="dec-action">更新 quality-report.md → 标注 PASS</div></div>
+<div class="dec-row"><div class="dec-icon dec-fail">1</div><div class="dec-label">可修复（缺标注/缺字段）</div><div class="dec-arrow">→</div><div class="dec-action">静默修复 → 重跑验证器</div></div>
+<div class="dec-row"><div class="dec-icon dec-warn">1</div><div class="dec-label">不可修复（信息本身缺失）</div><div class="dec-arrow">→</div><div class="dec-action">标注「已知风险」</div></div>
+</div>
+
+<div class="trigger-step"><span class="tw tw-fail">注意</span>验证器输出不向用户原文展示，结论写入 quality-report.md</div>
+
+<div class="arrow"></div>
+
+<!-- ===== END ===== -->
+<div class="phase-label">完成</div>
+
+<div class="nd nd-start">
+<div class="nd-title">✅ 分析完成</div>
+<div class="nd-sub">可进入设计分析阶段</div>
+</div>
+
+</div>
+</div><!-- end master-wrap -->
+
+<!-- LEGEND -->
+<div class="legend">
+<div class="legend-item"><div class="legend-dot" style="background:#EEEDFE;border-color:#534AB7"></div>输入</div>
+<div class="legend-item"><div class="legend-dot" style="background:#f8f8f8;border-color:#ccc"></div>自动节点</div>
+<div class="legend-item"><div class="legend-dot" style="background:#E1F5EE;border-color:#0F6E56"></div>人工介入</div>
+<div class="legend-item"><div class="legend-dot" style="background:#FAECE7;border-color:#993C1D"></div>输出物</div>
+<div class="legend-item"><div class="legend-dot" style="background:#FFF9E6;border-color:#D4A500"></div>质量门禁</div>
+<div class="legend-item"><div class="legend-dot" style="background:#E6F1FB;border-color:#185FA5"></div>知识库/引用</div>
+<div class="legend-item"><div class="legend-dot" style="background:#FDEAEA;border-color:#C62828"></div>失败/禁止</div>
+<div class="legend-item"><div class="legend-dot" style="border:2px solid #534AB7;background:#fff"></div>Skill/流程框</div>
+</div>
+
+</div>
