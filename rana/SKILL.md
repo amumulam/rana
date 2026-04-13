@@ -1,22 +1,26 @@
 ---
 name: rana
-version: 0.1.0
-description: |
-  UX 需求分析助手。帮助交互设计师对 PM 的 PRD/需求清单进行结构化分析，输出可直接进入设计分析阶段的交付物。
+version: 0.2.0
+license: MIT
+metadata:
+  author: amumu
+  description: |
+    UX 需求分析助手。帮助交互设计师对 PM 的 PRD/需求清单进行结构化分析，输出可直接进入设计分析阶段的交付物。
 
-  支持多模态输入：PRD 文本、界面截图。
-  每项分析标注来源追溯（[PRD第X节]、[截图X]）。
-  通过5维度质量门禁保障输出完整性。
+    支持多模态输入：PRD 文本、界面截图、PDF/Word/PNG 等文件。
+    文件解析可委托给外部 skill（可配置）。
+    每项分析标注来源追溯（[PRD第X节]、[截图X]）。
+    通过5维度质量门禁保障输出完整性。
 
-  触发场景：
-  - 设计师说"帮我分析这个需求/PRD"
-  - 设计师提供 PRD 文档、需求清单或截图
-  - 设计师说"帮我拆解需求"、"整理需求"、"需求澄清"
-  - 设计师需要输出需求分析文档
+    触发场景：
+    - 设计师说"帮我分析这个需求/PRD"
+    - 设计师提供 PRD 文档、需求清单、截图或文件
+    - 设计师说"帮我拆解需求"、"整理需求"、"需求澄清"
+    - 设计师需要输出需求分析文档
 
-  限制说明：
-  - 暂不支持 Figma 链接或 .fig 文件上传，请提供界面截图替代
-  - 暂不支持几十页的大需求/大文档分析，建议拆分为独立功能点分别分析
+    限制说明：
+    - 暂不支持 Figma 链接或 .fig 文件上传，请提供界面截图替代
+    - 暂不支持几十页的大需求/大文档分析，建议拆分为独立功能点分别分析
 ---
 
 # Rana — UX 需求分析助手
@@ -26,8 +30,11 @@ description: |
 ## 工作流概览
 
 ```
-输入: PRD + 截图
+输入: 任意文件（PDF/Word/PNG/文字/Markdown）
 （Figma 链接/文件暂不支持，引导用户提供界面截图替代）
+       │
+       ▼
+Stage 0: 文件预处理（新增）     → 结构化 Markdown
        │
        ▼
 Stage 1: 输入解析与结构化    → input-structured.md
@@ -61,6 +68,10 @@ Stage 6: 程序化验证          → 更新 quality-report.md
 ```
 <workspace>/
 ├── ux-requirement-analysis/              ← 语义容器（所有需求分析的统一存放位置）
+│   ├── _temp/                            ← Stage 0 文件预处理临时输出
+│   │   └── {filename}/                   ← 按原始文件名分类
+│   │       └── auto/
+│   │           └── {filename}.md         ← 解析后的 Markdown
 │   └── <需求名称>/
 │       └── <YYYY-MM-DD>/
 │           ├── input-structured.md       ← Stage 1 输出
@@ -126,6 +137,101 @@ ux-requirement-analysis/
 - 交付物 E（分析结论）× 1份（整体结论）
 
 **Stage 6**：程序化验证在所有文件就绪后执行，更新 quality-report.md。
+
+---
+
+## Stage 0：文件预处理
+
+**当用户输入为文件路径（而非纯文字内容）时，执行此阶段。**
+
+### 触发条件
+
+- 用户输入以文件路径形式提供（包含扩展名）
+- 文件类型：PDF / Word / PNG / DOCX / 等
+
+### 流程步骤
+
+#### 步骤 1：检测文件类型
+
+提取文件扩展名（如 `.pdf` → `pdf`）。
+
+#### 步骤 2：读取配置文件
+
+配置文件位置：`~/.openclaw/skills/rana/config.yaml`
+
+```yaml
+file_parser:
+  pdf: "mineru-pipeline"
+  word: "mineru-pipeline"
+  ...
+```
+
+**配置逻辑**：
+- 配置文件存在？查找 `file_parser.<类型>`
+  - 找到？→ 使用指定 skill
+  - 未找到？→ 执行 fallback
+- 配置文件不存在？→ 执行 fallback
+
+#### 步骤 3：调用外部 skill（sessions_spawn）
+
+**参数准备**：
+- `inputPath`: 用户文件路径
+- `outputDir`: `ux-requirement-analysis/_temp/`
+
+**子 agent 创建**：
+```
+sessions_spawn(
+  task: "使用 {skill_name} skill 解析文件 {file_path}，输出到 {outputDir}",
+  skills: ["{skill_name}"]
+)
+```
+
+**状态轮询**：
+- 每 60 秒检查子 agent 状态
+- 正常进行 → 继续等待下一轮
+- 完成 → 读取输出文件
+- 异常 → 报告错误，提供用户选择
+
+#### 步骤 4：读取解析结果
+
+**输出文件位置**：
+```
+ux-requirement-analysis/_temp/{filename}/auto/{filename}.md
+```
+
+读取此 Markdown 文件内容，作为 Stage 1 的输入。
+
+#### 步骤 5：自动衔接 Stage 1
+
+无需用户确认，直接进入 Stage 1 流程。
+
+### Fallback 机制
+
+**触发条件**：
+- `config.yaml` 不存在
+- 文件类型未配置
+
+**Fallback 流程**：
+1. 告知用户："当前文件类型未配置解析器，正在使用模型多模态能力直接解读"
+2. 调用模型多模态能力读取文件
+3. 输出文字描述作为临时 Markdown 内容
+4. 自动衔接 Stage 1
+
+### 错误处理
+
+| 错误 | 处理 |
+|------|------|
+| skill 不存在 | 提示用户安装或修改配置 + 执行 fallback |
+| 解析失败 | 提供选择：重试 / fallback / 手动输入 |
+| 输出文件缺失 | 执行 fallback |
+
+**用户选择提示格式**：
+```
+解析失败。请选择：
+1. 重试（再次调用 skill）
+2. 使用 fallback（模型多模态解读）
+3. 手动输入（您提供文字内容）
+```
 
 ---
 
