@@ -850,12 +850,8 @@ Stage 3 完成后，**必须将 `final-analysis.md` 完整内容输出给用户*
 
 ## 引用文件
 
-- `references/analysis-checklist.md` — 33项分析检查清单（Stage 2 使用）
-- `references/quality-gates.md` — 5维度质量门禁详细标准（Stage 4 使用）
+- `ref/需求分析与设计目标说明书模板.md` — 9章节说明书模板（输出参照）
+- `ref/四阶段渐进完善.md` — 四阶段渐进完善定义
+- `references/chapter-priority.md` — 章节 P0/P1/P2 定义
 - `references/traceability-guide.md` — 来源标注完整规范（全程使用）
-- `references/ux-analysis-methods.md` — 五问法/X-Y Problem/场景还原方法（Stage 2 使用）
-- `templates/requirement-card.md` — 需求分析卡空白模板
-- `templates/breakdown-list.md` — 需求拆解清单空白模板
-- `templates/scenario-boundary.md` — 场景边界说明空白模板
-- `templates/clarification-list.md` — 待澄清清单空白模板
-- `templates/analysis-conclusion.md` — 需求分析结论空白模板
+- `references/ux-analysis-methods.md` — 五问法/X-Y Problem/场景还原方法（Stage 1-2 使用）
