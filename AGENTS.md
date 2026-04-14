@@ -19,6 +19,17 @@ This skill is deployed in **two environments**:
 
 ---
 
+## Development Workflow
+
+**DO NOT auto-sync to OpenClaw directory during development.**
+
+- The `~/.openclaw/skills/rana/` directory is the production deployment target
+- Sync only when explicitly requested by user or during final deployment
+- Development work happens in `rana/` directory in this repo
+- Manual sync command when needed: `cp -r rana/. ~/.openclaw/skills/rana/`
+
+---
+
 ## Critical Technical Reality: PDF Handling in CLI Agents
 
 **The `read` tool does NOT work on PDFs in OpenCode/BlueCode.** It returns `PDF read successfully` with no content.
@@ -337,3 +348,28 @@ Implementation plans → `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`
 | Stage 1 知识库检索 | ~128-170 | R1-R4 检索步骤 |
 | input-structured.md 模板 | ~241-290 | 含 `**参考知识库**` 字段 |
 | Stage 5 知识回写 | ~724-780 | W1-W4 回写步骤 |
+
+---
+
+## OpenProse 工作流
+
+### rana-workflow.prose
+
+自动化 PDF → 需求分析流程：
+
+**位置**：`~/.openclaw/skills/rana-workflow.prose`
+
+**使用**：
+
+```
+/prose run ~/.openclaw/skills/rana-workflow.prose --prd-path spec.pdf
+/prose run ~/.openclaw/skills/rana-workflow.prose --prd-path spec.pdf --requirement-name "需求名称"
+```
+
+**依赖**（同级目录）：
+- `mineru-pipeline` - PDF 解析
+- `rana` - UX 需求分析
+
+**技术原理**：
+- `import "name" from "./dir"` 相对路径导入同级 skills
+- `agent.skills: ["name"]` 注入 skill instructions 到 subagent
