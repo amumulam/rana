@@ -36,6 +36,9 @@ metadata:
 （Figma 链接/文件暂不支持，引导用户提供界面截图替代）
        │
        ▼
+启动自检: blockStreaming 配置检查  → 检查 OpenClaw 配置状态
+       │
+       ▼
 Stage 0: 文件预处理              → 结构化 Markdown
        │
        ▼
