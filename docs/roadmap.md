@@ -189,6 +189,44 @@
 
 ---
 
+### v0.3.3
+
+**发布日期**: TBD
+
+**来源**: `docs/superpowers/specs/2026-04-15-v0.3.3-skill-refactor-design.md`
+
+**定位**: SKILL.md 重构，拆解、精简、规范化。
+
+#### 功能清单
+
+| # | 功能 | 优先级 | 状态 | 说明 |
+|---|------|--------|------|------|
+| F1 | SKILL.md 精简 | P0 | 规划中 | 移除嵌入模板、Stage 详细步骤，精简至 200-300 行 |
+| F2 | Stage guideline 拆分 | P0 | 规划中 | 创建 stage-1/2/3-guideline.md，各 Stage 详细流程独立文件 |
+| F3 | P0 缺口规则汇总 | P0 | 规划中 | 创建 p0-gates.md，整合所有 Stage P0 缺口规则 |
+| F4 | 协作对话规范提取 | P0 | 规划中 | 创建 collaboration-protocol.md，启发式追问、反驳机制 |
+| F5 | 文件命名规范化 | P0 | 规划中 | 全英文命名，避免中英夹杂；归档文件 `_archived-` 前缀 |
+| F6 | 模板迁移至 assets | P0 | 规划中 | 模板移至 assets/analysis-template.md，符合 skill-creat-guideline |
+| F7 | 四段式输出统一 | P0 | 规划中 | 所有 Stage 统一四段式输出 + 缺口讨论环节 |
+| F8 | 缺口讨论流程明确 | P0 | 规划中 | 多轮对话（人在环中），明确 P0 缺口触发讨论机制 |
+
+#### 核心变更位置
+
+| 变更 | 位置 | 说明 |
+|------|------|------|
+| SKILL.md 精简 | rana/SKILL.md | 移除嵌入模板、Stage 详细步骤 |
+| Stage 1 guideline | references/stage-1-guideline.md | 新建，Stage 1 详细流程 |
+| Stage 2 guideline | references/stage-2-guideline.md | 新建，Stage 2 详细流程 |
+| Stage 3 guideline | references/stage-3-guideline.md | 新建，Stage 3 详细流程 |
+| P0 缺口规则 | references/p0-gates.md | 新建，P0 缺口规则汇总 |
+| 协作对话规范 | references/collaboration-protocol.md | 新建 |
+| 分析方法论 | references/analysis-methods.md | 重命名自 ux-analysis-methods.md |
+| 输出模板 | assets/analysis-template.md | 移动自 references/需求分析与设计目标说明书模板.md |
+| 归档文件 | references/_archived-traceability-guide.md | 归档标记 |
+| 冗余文件删除 | references/ | chapter-priority.md、四阶段渐进完善.md、analysis-checklist.md、quality-gates.md |
+
+---
+
 ### v0.4.0
 
 **目标窗口**: TBD
