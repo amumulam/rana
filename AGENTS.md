@@ -21,12 +21,47 @@ This skill is deployed in **two environments**:
 
 ## Development Workflow
 
-**DO NOT auto-sync to OpenClaw directory during development.**
+**DO NOT auto-sync to any skill install directory during development.**
 
+- The `~/.agents/skills/rana/` directory is the local BlueCode/OpenCode install target
 - The `~/.openclaw/skills/rana/` directory is the production deployment target
-- Sync only when explicitly requested by user or during final deployment
+- **Sync only when explicitly requested by user** (e.g., user says "同步" or "sync to install directory")
 - Development work happens in `rana/` directory in this repo
-- Manual sync command when needed: `cp -r rana/. ~/.openclaw/skills/rana/`
+- Manual sync commands when needed:
+  - Local: `cp -r rana/. ~/.agents/skills/rana/`
+  - Server: `cp -r rana/. ~/.openclaw/skills/rana/`
+
+---
+
+## Skill Creation Guideline
+
+**本项目遵循 `./skill-creat-guideline/` 目录下的指南进行 skill 开发。**
+
+关键规范：
+
+### 目录结构
+
+```
+skill-name/
+├── SKILL.md (required)
+└── Bundled Resources (optional)
+    ├── scripts/          - 可执行代码（Python/Bash等）
+    ├── references/       - 需加载入 context 的参考文档
+    └── assets/           - 输出使用的文件（模板、图标等）
+```
+
+### 文件命名规范
+
+- **所有文件名使用英文**，避免中英夹杂
+- 中文名称的内容文件移至 `assets/` 或 `references/`，使用英文命名并在文件开头注明中文标题
+
+### 核心原则（来自 Best practices for skill creators.md）
+
+1. **SKILL.md 精简** — 建议不超过 500 行 / 5000 tokens
+2. **渐进式披露** — 详细内容放 `references/`，在 SKILL.md 中说明何时加载
+3. **避免重复** — 信息只存在一处，不同时在 SKILL.md 和 references 中
+4. **提供默认而非菜单** — 多个选项时给出默认推荐
+5. **按脆弱性校准** — 脆弱操作用具体指令，灵活操作用原则指导
 
 ---
 
