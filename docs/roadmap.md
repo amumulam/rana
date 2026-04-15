@@ -14,7 +14,7 @@
 | v0.3.1 | 已发布 | 咨询式批判思维、启发式追问、反驳机制 |
 | v0.3.2 | 已发布 | 迁移成本评估、HMW方案发散、MVP敏捷裁量 |
 | v0.3.2b | 已发布 | Stage强制输出呈现、blockStreaming三段式、来源标注移除 |
-| v0.3.3 | 规划中 | SKILL.md重构拆解、规范化 |
+| v0.3.3 | 已发布 | SKILL.md重构拆解、规范化 |
 | v0.4.0 | 规划中 | 迭代关联、需求类型适配 |
 
 ---
@@ -114,24 +114,6 @@
 ---
 
 ## 规划中版本
-
-### v0.3.3
-
-**来源**: `docs/superpowers/specs/2026-04-15-v0.3.3-skill-refactor-design.md`
-
-**定位**: SKILL.md 重构，拆解、精简、规范化。
-
-| 功能 | 说明 |
-|------|------|
-| SKILL.md 精简 | 移除嵌入模板、Stage 详细步骤，精简至 200-300 行 |
-| Stage guideline 拆分 | 创建 stage-1/2/3-guideline.md |
-| P0 缺口规则汇总 | 创建 p0-gates.md |
-| 协作对话规范提取 | 创建 collaboration-protocol.md |
-| 文件命名规范化 | 全英文命名，归档文件 `_archived-` 前缀 |
-| 模板迁移至 assets | 符合 skill-creat-guideline 规范 |
-| 四段式输出统一 | 所有 Stage 统一四段式 + 缺口讨论环节 |
-
----
 
 ### v0.4.0
 
