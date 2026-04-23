@@ -4,7 +4,6 @@
 
 file_parser:
   pdf: "mineru-pipeline"
-  word: "mineru-pipeline"
-  png: "mineru-pipeline"
+  # png: "mineru-pipeline"
   docx: "mineru-pipeline"
   # 用户可添加更多类型或替换为其他 skill

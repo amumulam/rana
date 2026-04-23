@@ -83,9 +83,9 @@
 
 ### Step 4: 创建 final-analysis.md（初始化）
 
-读取 `assets/analysis-template-full.md`，填充可完成的二~四章，无法完成的标记 `[缺失]`。
+读取 `assets/analysis-template-full.md`，填充可完成的二--四章，无法完成的标记 `[缺失]`。
 
-**注意**：本阶段仅输出二~四章。一、五~八章+总结在后续 Stage 输出。
+**注意**：本阶段仅输出二--四章。一、五--八章+总结在后续 Stage 输出。
 
 ---
 

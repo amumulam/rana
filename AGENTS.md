@@ -112,15 +112,26 @@ This is accurate **only** when the skill is used via a web UI that supports file
 ```
 rana/  (repo root, local path: requirements-analysis/)
 ├── rana/         # Skill source (canonical copy)
-│   ├── SKILL.md                     # Skill definition — workflow, stage specs, output formats
+│   ├── SKILL.md                     # Skill definition — dual-mode workflow, 3-stage specs (~300 lines)
 │   ├── scripts/
-│   │   └── quality-validator.py     # CLI quality gate checker (992 lines)
+│   │   └── quality-validator.py     # CLI quality gate checker (v0.4.0, 3 required files + P0 sections)
 │   ├── references/
-│   │   ├── analysis-checklist.md    # 33-item checklist (P0/P1/P2 labeled)
-│   │   ├── traceability-guide.md    # Source annotation conventions
-│   │   ├── quality-gates.md         # 5-dimension quality gate standards
-│   │   └── ux-analysis-methods.md   # 5 Whys / X-Y Problem / Scene Restoration
-│   └── templates/                   # 5 deliverable templates (A–E)
+│   │   ├── collaboration-protocol.md  # 批判反驳与协作对话规范（Quick/Full 通用）
+│   │   ├── p0-gates.md               # P0 缺口规则（v0.4.0）
+│   │   ├── stage-1-diagnosis.md      # 诊断层详细流程（v0.4.0）
+│   │   ├── stage-2-solution.md       # 方案层详细流程（v0.4.0）
+│   │   ├── stage-3-refine.md         # 提炼层详细流程（v0.4.0）
+│   │   ├── analysis-methods.md       # HMW/MVP/五问法/X-Y Problem
+│   │   ├── _archived-stage-1-guideline.md  # 归档旧四阶段版
+│   │   ├── _archived-stage-2-guideline.md  # 归档旧四阶段版
+│   │   ├── _archived-stage-3-guideline.md  # 归档旧四阶段版
+│   │   ├── analysis-checklist.md     # 33-item checklist (旧版,待评估)
+│   │   ├── traceability-guide.md     # Source annotation conventions (旧版,待评估)
+│   │   └── quality-gates.md          # 5-dimension quality gate standards (旧版,待评估)
+│   ├── assets/
+│   │   ├── analysis-template-full.md  # Full Mode 输出模板（8章+总结，v0.4.0）
+│   │   └── analysis-template-quick.md # Quick Mode 快速分析模板（四维度+提问清单，v0.4.0）
+│   └── config.yaml                    # file_parser 配置
 ├── tests/
 │   ├── unit/                        # pytest unit tests for validator functions
 │   └── e2e/                         # E2E tests via subprocess CLI calls
@@ -145,7 +156,8 @@ rana/  (repo root, local path: requirements-analysis/)
 │   ├── _temp/                            # Stage 0 文件预处理临时输出
 │   │   └── {filename}/auto/{filename}.md
 │   └── <需求名称>/<YYYY-MM-DD>/
-│       ├── final-analysis.md              # 主输出（9章节结构）
+│       ├── final-analysis.md              # Full Mode 主输出（8章+总结）
+│       ├── quick-analysis.md              # Quick Mode 快速分析
 │       ├── change-log.md                  # 协作记录
 │       └── quality-report.md              # AI自评（简化）
 ```
@@ -233,7 +245,7 @@ ruff check rana/scripts/
 
 ### Naming conventions
 - Functions: `check_<what>` for validators, `has_<property>` for boolean helpers
-- Constants: `EXPECTED_FILES`, `VAGUE_TERMS`, `REQUIRED_CARD_FIELDS`, `TRACEABILITY_PATTERNS`
+- Constants: `REQUIRED_FILES`, `OPTIONAL_FILES`, `VAGUE_TERMS`, `P0_REQUIRED_SECTIONS`, `EXPECTED_CHAPTERS`, `OPTIONAL_CHAPTERS`, `TRACEABILITY_PATTERNS`
 - Internal helpers: prefix with `_` (e.g. `_make_result`)
 
 ### Error handling
@@ -299,22 +311,29 @@ In unit tests that construct markdown tables, use a first cell that is in `HEADE
 
 ---
 
-## Validator Key Behaviors to Know
+## Validator Key Behaviors to Know (v0.4.0)
 
 ### Traceability check threshold
 Pass rate ≥ 80% required. `pass_rate = (checked - issues) / checked`. Empty document = `pass_rate = 1.0` (vacuously passes).
 
-### Files skipped entirely
-`change-log.md` and `quality-report.md` are never traceability-checked — they are process documents.
+### Files checked/skipped for traceability
+- `final-analysis.md` — fully checked (8 chapters + summary)
+- `change-log.md` — skipped (process document)
+- `quality-report.md` — skipped (AI evaluation)
+- `quick-analysis.md` — skipped (Quick Mode, not full deliverable)
 
-### check_card_fields section detection
-Detects `## ` heading containing `"需求分析卡"`, `"交付物 A"`, or `"交付物A"`. Stops at the next `## ` heading. Both cards in a multi-feature PRD must be under the **same** `## ` section (use `### ` subheadings to separate them).
+### Sections skipped in final-analysis.md traceability
+- "总结" — conclusions, already traced in body
+- "待澄清项/待澄清" — AI-generated questions, no source needed
+- "八、各角色重点关注" — P2 optional, not required to trace
+
+### P0 section check (replaces 需求分析卡)
+Checks 8 P0 required sections exist in final-analysis.md via regex: `section_num.*section_name`. Missing any → FAIL.
+
+P0 sections: 1.1 需求概述, 1.2 需求来源, 2.1 核心用户画像, 2.3 场景与用户目标, 3.1 现状与根因拆解, 4.1 业务北极星, 6.1 MVP, 6.3 需求全清单与优先级分级
 
 ### VAGUE_TERMS — intentionally excluded words
 `"相关"`, `"一般"`, `"通常"`, `"正常情况下"` were removed due to high false-positive rate. Do not re-add without updating the comment block in the config section.
-
-### REQUIRED_CARD_FIELDS (14, in order)
-需求名称, 版本/迭代号, 需求来源, 背景说明, 目标用户, 使用场景, 核心问题, 需求拆解, 业务规则, 约束条件, 优先级, 待澄清项, 风险点, 需求结论
 
 ---
 
@@ -332,16 +351,18 @@ Version roadmap → `docs/roadmap.md`
 
 ---
 
-## SKILL.md Key Locations (v0.3.0)
+## SKILL.md Key Locations (v0.4.0)
 
 | Section | Lines | Notes |
 |---------|-------|-------|
-| 输出目录约定 | ~49-70 | `_temp/` 和 `<需求名称>/<YYYY-MM-DD>/` 目录结构 |
-| Stage 0 文件预处理 | ~80-95 | 文件类型判断、临时输出 |
-| Stage 1 Basic+Core | ~100-200 | 一~四章节输出、P0 缺口阻塞 |
-| Stage 2 Detail | ~210-350 | 五~八章节输出、协作更新 |
-| 四阶段推进规则 | ~360-410 | 缺口判断、阶段推进条件 |
-| 章节模板 | ~420-700 | 一~八章节详细模板 |
+| 互动风格 + 工作原则 + 批判反驳概要 | ~30-90 | 新增 v0.4.0：人设、C1-C7 触发条件 |
+| 双模式概览（mermaid） | ~95-145 | Quick/Full 流程图 + 模式选择逻辑 |
+| 输出目录约定 | ~148-165 | `_temp/` 和 `<需求名称>/<YYYY-MM-DD>/` 目录结构 |
+| Quick Mode 流程 | ~195-215 | 四步：共识单→讨论→提问清单→升级提示 |
+| Full Mode 三阶段概览 | ~218-240 | 诊断层→方案层→提炼层，引用 references |
+| 注意事项 | ~245-250 | Quick Mode 不适用 P0 缺口规则 |
+
+**注意**：SKILL.md v0.4.0 为 Clean Break 重写（~300行），旧 v0.3.3 的章节模板、四阶段推进规则等已移至 references/ 或归档。
 
 ---
 

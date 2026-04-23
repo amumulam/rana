@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 质量门禁校验脚本
-UX Requirements Analyzer Skill - Quality Validator
+UX Requirements Analyzer Skill - Quality Validator (v0.4.0)
 
 用法：
   python3 quality-validator.py <分析目录>
@@ -9,12 +9,19 @@ UX Requirements Analyzer Skill - Quality Validator
 示例：
   python3 quality-validator.py ./my-analysis/
 
+v0.4.0 变更（适配八章节+总结双模式结构）：
+  - 移除 input-structured.md 和 gap-analysis.md（v0.3 交付物）
+  - 移除「需求分析卡」字段检查（v0.3 交付物A），改为 P0 必填章节检查
+  - quick-analysis.md 为可选文件（Quick Mode 输出）
+  - 必需文件：final-analysis.md, change-log.md, quality-report.md
+  - 必须章节：一~七 + 总结（八为可选）
+  - P0 必填小节检查替代原字段完整性检查
+
 来源追溯检查策略（按文件分级）：
-  input-structured.md  : 检查所有表格数据行和列表项（事实提取文档）
-  gap-analysis.md      : 只检查数据表，跳过检查清单和分析方法区块（AI判断内容）
-  final-analysis.md    : 检查5个交付物章节，跳过待澄清清单和引用行
-  change-log.md        : 跳过——协作过程记录，确认方字段已作为来源标注
+  final-analysis.md    : 检查八章节+总结中的表格数据行和列表项，跳过待澄清清单和总结判定
+  change-log.md        : 跳过——协作过程记录
   quality-report.md    : 跳过——纯AI评估文档，无需来源标注
+  quick-analysis.md    : 跳过——Quick Mode 快速分析，非完整交付物
 """
 
 import re
@@ -26,21 +33,20 @@ from pathlib import Path
 # 配置
 # ──────────────────────────────────────────────
 
-# 来源标注模式
 TRACEABILITY_PATTERNS = [
-    r"\[PRD[^\]]+\]",  # [PRD第X节] / [PRD 第X节] / [PRD 需求清单] 等所有 PRD 引用
+    r"\[PRD[^\]]+\]",
     r"\[截图\s*\d+[^\]]*\]",
-    r"\[PDF第\d+页[^\]]*\]",  # PDF 文字内容引用
-    r"\[PDF截图\d+[^\]]*\]",  # PDF 图片引用
+    r"\[PDF第\d+页[^\]]*\]",
+    r"\[PDF截图\d+[^\]]*\]",
     r"\[Figma[^\]]+\]",
     r"\[PM\s*确认[^\]]*\]",
     r"\[研发\s*确认[^\]]*\]",
     r"\[测试\s*确认[^\]]*\]",
     r"\[业务\s*确认[^\]]*\]",
     r"\[设计师\s*确认[^\]]*\]",
-    r"\[用户\s*确认[^\]]*\]",  # [用户确认] / [用户确认 19:16] — 对话确认通用格式
-    r"\[推断[^\]]*\]",  # [推断：依据] / [推断] 裸标注
-    r"\[分析推断[^\]]*\]",  # [分析推断] — 裸推断变体
+    r"\[用户\s*确认[^\]]*\]",
+    r"\[推断[^\]]*\]",
+    r"\[分析推断[^\]]*\]",
     r"\[场景还原推断[^\]]*\]",
     r"\[五问法推断[^\]]*\]",
     r"\[X-Y分析推断[^\]]*\]",
@@ -48,17 +54,10 @@ TRACEABILITY_PATTERNS = [
     r"\[口头说明[^\]]*\]",
     r"\[CHG-\d+\]",
     r"\[原始输入[^\]]*\]",
-    r"\[分析创建[^\]]*\]",  # [分析创建] — 系统生成内容，无外部来源
+    r"\[分析创建[^\]]*\]",
     r"\[quality-report[^\]]*\]",
 ]
 
-# 模糊表述（不可执行词汇）
-# 注：以下词汇因高误报率已移除：
-#   "相关"       — 常出现在「相关度算法」等技术术语中
-#   "一般"       — 叙述性语言中误报率高
-#   "通常"       — 常出现在来源标注的推断依据中（如 [推断：...通常用于...]）
-#   "正常情况下"  — 分析注释背景描述会被误拦
-# 这些词的漏报成本低：真正模糊的需求通常同时触发完整性维度 FAIL
 VAGUE_TERMS = [
     "适当",
     "合理",
@@ -74,42 +73,40 @@ VAGUE_TERMS = [
     "后续讨论",
 ]
 
-# 预期文件列表（相对于分析目录）
-EXPECTED_FILES = [
-    "input-structured.md",
-    "gap-analysis.md",
+REQUIRED_FILES = [
+    "final-analysis.md",
     "change-log.md",
     "quality-report.md",
-    "final-analysis.md",
 ]
 
-# 预期章节（在 final-analysis.md 中）
-EXPECTED_SECTIONS = {
-    "final-analysis.md": [
-        "需求分析卡",
-        "需求拆解清单",
-        "场景与边界说明",
-        "待澄清问题清单",
-        "需求分析结论",
-    ]
-}
+OPTIONAL_FILES = [
+    "quick-analysis.md",
+]
 
-# 需求分析卡必填字段（来自 templates/requirement-card.md，共14项）
-REQUIRED_CARD_FIELDS = [
-    "需求名称",
-    "版本/迭代号",
-    "需求来源",
-    "背景说明",
-    "目标用户",
-    "使用场景",
-    "核心问题",
-    "需求拆解",
-    "业务规则",
-    "约束条件",
-    "优先级",
-    "待澄清项",
-    "风险点",
-    "需求结论",
+EXPECTED_CHAPTERS = [
+    "一、概述",
+    "二、用户",
+    "三、现状",
+    "四、业务目标",
+    "五、策略",
+    "六、方案与验证",
+    "七、风险与建议",
+    "总结",
+]
+
+OPTIONAL_CHAPTERS = [
+    "八、各角色重点关注",
+]
+
+P0_REQUIRED_SECTIONS = [
+    ("1.1", "需求概述"),
+    ("1.2", "需求来源"),
+    ("2.1", "核心用户画像"),
+    ("2.3", "场景与用户目标"),
+    ("3.1", "现状与根因拆解"),
+    ("4.1", "业务北极星"),
+    ("6.1", "MVP"),
+    ("6.3", "需求全清单与优先级分级"),
 ]
 
 
@@ -119,7 +116,6 @@ REQUIRED_CARD_FIELDS = [
 
 
 def has_traceability(line: str) -> bool:
-    """检查一行是否含有来源标注"""
     return any(re.search(pat, line) for pat in TRACEABILITY_PATTERNS)
 
 
@@ -132,154 +128,39 @@ def is_empty_or_heading(line: str) -> bool:
 
 
 def table_cells(line: str) -> list:
-    """解析表格行的单元格列表"""
     return [c.strip() for c in line.strip().strip("|").split("|")]
 
 
 # ──────────────────────────────────────────────
-# 来源追溯：按文件类型分策略检查
+# 来源追溯：final-analysis.md
 # ──────────────────────────────────────────────
-
-
-def check_traceability_input_structured(content: str) -> dict:
-    """
-    input-structured.md：检查所有表格数据行和列表项。
-    这是原始输入的结构化整理，每条事实都应标注来源。
-    """
-    lines = content.split("\n")
-    issues = []
-    checked = 0
-    in_code_block = False
-    nearest_heading_has_source = False  # 最近一个 ##/### 标题是否有来源标注（扁平替换，不跟踪层级）
-
-    # 表头关键词：这些作为首列时说明是表头行
-    HEADER_KEYWORDS = [
-        "字段",
-        "内容",
-        "来源追溯",
-        "来源",
-        "状态",
-        "说明",
-        "描述",
-        "维度",
-        "检查项",
-        "通过标准",
-        "触发条件",
-        "用户目标",
-        "条件值",
-        "边界类型",
-        "影响",
-        "截止",
-        "确认结果",
-        "类别",
-        "类型",
-        "主任务",
-        "子任务",
-        "前置条件",
-        "主流程",
-        "异常处理",
-        "对象",
-        "角色",
-        "可操作",
-        "不可操作",
-        "#",
-        "检查内容",
-        "场景",
-        "入口",
-        "问题描述",
-        "影响评估",
-        "确认方",
-    ]
-
-    for i, line in enumerate(lines, 1):
-        if line.strip().startswith("```"):
-            in_code_block = not in_code_block
-            continue
-        if in_code_block:
-            continue
-        if is_empty_or_heading(line):
-            # 如果是 ## 或 ### 标题，更新章节级来源传播状态
-            if re.match(r"^#{2,3}\s", line):
-                nearest_heading_has_source = has_traceability(line)
-            elif re.match(r"^#\s", line):
-                # 顶级标题（# 文档标题）重置传播状态
-                nearest_heading_has_source = False
-            continue
-        if re.match(r"^>\s", line) or re.match(r"^\*\*[^*]+\*\*\s*$", line):
-            continue
-
-        is_table_row = "|" in line and not is_table_separator(line)
-        is_list_item = bool(re.match(r"^\s*[-*]\s+\S", line) or re.match(r"^\s*\d+\.\s+\S", line))
-
-        if not (is_table_row or is_list_item):
-            continue
-
-        # 跳过表头行
-        if is_table_row:
-            cells = table_cells(line)
-            if cells and any(kw in cells[0] for kw in HEADER_KEYWORDS):
-                continue
-            # 跳过纯数字/百分比统计行
-            non_empty = [c for c in cells if c and c not in ("—", "-")]
-            if non_empty and all(re.match(r"^[\d%（）().*A-Z\s]+$", c) for c in non_empty):
-                continue
-
-        # 跳过列表中的纯结构说明行
-        if is_list_item:
-            stripped = line.strip().lstrip("- *0123456789.")
-            if re.match(
-                r"^(参考|引用|时间|触发|确认方|影响|原因|来源|类型|详情|建议|说明|注意|用法|示例|格式|输入|输出|处理|状态)[:：]",
-                stripped,
-            ):
-                continue
-
-        # 如果最近一个 ##/### 标题已有来源标注，豁免该行的单独标注要求
-        if nearest_heading_has_source:
-            continue
-
-        checked += 1
-        if not has_traceability(line):
-            issues.append({"line": i, "content": line.strip()[:80]})
-
-    return _make_result(checked, issues)
 
 
 def check_traceability_final_analysis(content: str) -> dict:
     """
-    final-analysis.md：检查5个交付物章节中的表格数据行和列表项。
+    final-analysis.md：检查八章节+总结中的表格数据行和列表项。
     跳过：
-    - 结构引用行（如 | **需求拆解** | [见交付物 B] | — |）
-    - 纯粗体标签行
-    - 来源注脚行（以「来源：」开头的列表行）
-    - 待澄清清单（交付物D）整个区块的表格行（AI生成的问题，无需来源标注）
-    - 设计输入建议区块的纯操作步骤列表（AI分析性文字）
-    - 使用「下一行 来源：」模式的主场景/边界描述行（来源在下一行标注）
+    - 待澄清项区块（AI生成的问题，无需来源标注）
+    - 总结中的成立/不成立判定行（AI判断结论）
+    - 各角色重点关注章节（P2 可选内容）
     """
     lines = content.split("\n")
     issues = []
     checked = 0
     in_code_block = False
-    in_skip_section = False  # 待澄清清单、设计输入建议等跳过区块
+    in_skip_section = False
 
-    # 进入跳过区块的标题关键词
     SKIP_SECTION_HEADERS = [
-        "待澄清问题清单",
-        "交付物 D",
-        "交付物D",
-        "设计输入建议",
-        "当前分析状态",  # B中的AI评估表
-        "状态说明",  # 交付物D内的状态说明子区块
-        "汇总统计",  # 交付物D内的汇总统计子区块
-        # 交付物E：需求分析结论是前面分析的汇总，不再要求逐行来源
-        "交付物 E",
-        "交付物E",
-        "需求分析结论",
-        "一句话结论",
-        "详细说明",
+        "待澄清项",
+        "待澄清",
+        "八、各角色重点关注",
+        "八、各角色关注",
+        "各角色重点关注",
+        "各角色关注",
+        "总结",
     ]
 
-    # 回到检查区块的标题关键词（交付物E后无需恢复检查）
-    RESUME_SECTION_HEADERS: list = []
+    RESUME_SECTION_HEADERS = []
 
     HEADER_KEYWORDS = [
         "字段",
@@ -294,51 +175,30 @@ def check_traceability_final_analysis(content: str) -> dict:
         "通过标准",
         "触发条件",
         "用户目标",
-        # 交付物B各子表的表头首列
-        "页面",
-        "分支条件",
-        "流程描述",
-        "异常类型",
-        "对象",
-        "依赖类型",
-        "依赖内容",
-        "条件值",
-        "边界类型",
-        "影响",
-        "截止",
-        "确认结果",
-        "类别",
-        "类型",
-        "主任务",
-        "子任务",
-        "前置条件",
-        "主流程",
-        "异常处理",
-        "对象",
         "角色",
-        "可操作",
-        "不可操作",
-        "#",
-        "检查内容",
         "场景",
-        "入口",
-        "问题描述",
-        "影响评估",
-        "确认方",
         "序号",
         "缺口描述",
         "需问谁",
         "优先级",
         "限制类型",
         "具体限制",
+        "目标值",
+        "基准值",
+        "指标名称",
+        "统计口径",
+        "验证方式",
+        "核心场景",
+        "边缘场景",
+        "子任务",
+        "优先级分级",
+        "功能点",
     ]
 
-    # 表格引用值（内容列为「[见交付物X]」等的行不需要追溯）
     REFERENCE_CELL_PATTERNS = [
-        r"^\[见交付物",
+        r"^\[见",
         r"^—$",
         r"^\[缺失\]",
-        r"^见交付物",
     ]
 
     for i, line in enumerate(lines, 1):
@@ -348,7 +208,6 @@ def check_traceability_final_analysis(content: str) -> dict:
         if in_code_block:
             continue
 
-        # 检测是否进入/离开跳过区块
         if re.match(r"^##", line):
             if any(kw in line for kw in SKIP_SECTION_HEADERS):
                 in_skip_section = True
@@ -376,182 +235,43 @@ def check_traceability_final_analysis(content: str) -> dict:
         if not (is_table_row or is_list_item):
             continue
 
-        # 跳过表头行
         if is_table_row:
             cells = table_cells(line)
             if cells and any(kw in cells[0] for kw in HEADER_KEYWORDS):
                 continue
-            # 跳过需求分析卡分组行：第1列为 **▌ 分组名**，其余列为空
-            # 例：| **▌ 基本信息** | | |
-            if cells and re.match(r"^\*\*▌", cells[0]) and all(c == "" for c in cells[1:]):
-                continue
-            # 跳过纯数字/百分比统计行
             non_empty = [c for c in cells if c and c not in ("—", "-")]
             if non_empty and all(re.match(r"^[\d%（）().*A-Z\s]+$", c) for c in non_empty):
                 continue
-            # 跳过引用行：
-            # 1. 内容列（cells[1]）匹配 REFERENCE_CELL_PATTERNS（[见交付物X]、—、[缺失]）
-            # 2. 来源列（cells[2]）为 — 且内容列含"见下文"/"见交付物"引用文字
             if len(cells) >= 2:
                 content_cell = cells[1] if len(cells) > 1 else ""
                 source_cell = cells[2].strip() if len(cells) > 2 else ""
                 if any(re.match(pat, content_cell) for pat in REFERENCE_CELL_PATTERNS):
                     continue
-                # 来源列为 — 且内容列是引用性文字
-                if source_cell == "—" and re.search(r"见下文|见交付物|详见", content_cell):
+                if source_cell == "—" and re.search(r"见下文|详见|见第六章", content_cell):
                     continue
 
         if is_list_item:
-            # 去掉列表前缀（- 或数字.），保留 ** 等标记
             stripped_prefix = re.sub(r"^\s*[-*]\s+", "", line.strip())
             stripped_prefix = re.sub(r"^\s*\d+\.\s+", "", stripped_prefix)
-            # 也计算去掉 ** 的纯文字版本（用于简单前缀匹配）
             stripped = re.sub(r"^\*\*[^*]*\*\*\s*", "", stripped_prefix).strip()
             bare = re.sub(r"\*\*", "", stripped_prefix).strip()
 
-            # 跳过「来源：」注脚行
             if re.match(r"^来源[:：]", stripped_prefix) or re.match(r"^来源[:：]", bare):
                 continue
-            # 跳过其他结构说明行
             if re.match(
                 r"^(参考|引用|时间|触发|确认方|影响|原因|来源|类型|详情|建议|说明|注意|用法|示例|格式|输入|输出|处理|状态)[:：]",
                 bare,
             ):
                 continue
-            # 跳过「下一行是来源标注」模式的场景/边界/不支持描述行
-            # 模式：**场景 N**：...  或  **边界 N**：...  或  不支持：...
-            # 来源在下一行：  - 来源：...
             next_line = lines[i] if i < len(lines) else ""
             has_next_source = bool(
                 re.match(r"^\s+-\s+来源[:：]", next_line) or re.match(r"^\s+来源[:：]", next_line)
             )
             if has_next_source:
-                # 如果行本身是以 **场景/边界/不支持 开头的描述行，跳过
                 if re.match(r"^\*\*(场景|边界|不支持)", stripped_prefix):
                     continue
                 if re.match(r"^不支持[：:]", bare):
                     continue
-
-        checked += 1
-        if not has_traceability(line):
-            issues.append({"line": i, "content": line.strip()[:80]})
-
-    return _make_result(checked, issues)
-
-
-def check_traceability_gap_analysis(content: str) -> dict:
-    """
-    gap-analysis.md：只检查数据表（目标用户表、场景清单、7维度表、边界条件表）。
-    跳过：
-    - 33项检查清单（纯AI分析——每项是「检查X是否满足」的判断，不是从输入提取的事实）
-    - 检查结果汇总（纯统计行）
-    - 缺口汇总表（AI生成的优先级矩阵）
-    - 方法论应用区块（五问法/X-Y Problem/场景还原，全部是AI分析文字）
-    检查：
-    - 目标用户表、场景清单、7维度拆解表、边界条件表（从输入提取的事实内容）
-    """
-    lines = content.split("\n")
-    issues = []
-    checked = 0
-    in_code_block = False
-    in_skip_section = False  # 标记是否在需要跳过的区块中
-
-    # 进入跳过区块的关键词（支持多种文档格式）
-    SKIP_SECTION_KEYWORDS = [
-        "33项检查清单",
-        "33 项检查清单",
-        "检查清单逐项",
-        "检查结果汇总",
-        "缺口汇总",
-        "方法论应用",
-        "五问法",
-        "X-Y Problem",
-        "场景还原",
-        "缺口汇总清单",
-    ]
-
-    # 回到检查区块的关键词（数据表区块）
-    RESUME_SECTION_KEYWORDS = [
-        "用户与场景",
-        "目标用户",
-        "场景清单",
-        "需求拆解",
-        "边界条件",
-        "边界与约束",
-    ]
-
-    # 数据表的表头关键词（表头行本身跳过）
-    HEADER_KEYWORDS = [
-        "角色",
-        "描述",
-        "来源",
-        "状态",
-        "维度",
-        "内容",
-        "边界类型",
-        "条件值",
-        "字段",
-        "项",
-        "检查内容",
-        "检查项",
-        "通过标准",
-        "说明",
-    ]
-
-    for i, line in enumerate(lines, 1):
-        if line.strip().startswith("```"):
-            in_code_block = not in_code_block
-            continue
-        if in_code_block:
-            continue
-
-        # 检测章节标题（## 和 ###）
-        if re.match(r"^#{1,3}\s", line):
-            heading_text = line.strip()
-            if any(kw in heading_text for kw in SKIP_SECTION_KEYWORDS):
-                in_skip_section = True
-            elif any(kw in heading_text for kw in RESUME_SECTION_KEYWORDS):
-                in_skip_section = False
-            continue
-
-        if in_skip_section:
-            continue
-
-        if is_empty_or_heading(line):
-            continue
-        if re.match(r"^>\s", line):
-            continue
-
-        # 跳过段落汇总行（如 **A 类通过：1/4（25%）**）
-        if re.match(r"^\*\*[A-Z].*通过.*\*\*$", line.strip()):
-            continue
-
-        is_table_row = "|" in line and not is_table_separator(line)
-        is_list_item = bool(re.match(r"^\s*[-*]\s+\S", line) or re.match(r"^\s*\d+\.\s+\S", line))
-
-        if not (is_table_row or is_list_item):
-            continue
-
-        # 跳过表头行
-        if is_table_row:
-            cells = table_cells(line)
-            if cells and any(kw in cells[0] for kw in HEADER_KEYWORDS):
-                continue
-            # 跳过纯数字/百分比统计行
-            non_empty = [c for c in cells if c and c not in ("—", "-")]
-            if non_empty and all(re.match(r"^[\d%（）().*A-Z\s]+$", c) for c in non_empty):
-                continue
-
-        if is_list_item:
-            stripped = line.strip().lstrip("- *0123456789.")
-            if re.match(
-                r"^(参考|引用|时间|触发|确认方|影响|原因|来源|类型|详情|建议|说明|注意|用法|示例|格式|输入|输出|处理|状态|发现|设计启发|追问|真实问题|评估|表面需求|真实需求)[:：→]",
-                stripped,
-            ):
-                continue
-            # 跳过粗体标签开头的分析段落行（如 **Why 1**：、**需求**：）
-            if re.match(r"^\*\*[^*]+\*\*[：:]", stripped):
-                continue
 
         checked += 1
         if not has_traceability(line):
@@ -574,14 +294,19 @@ def _make_result(checked: int, issues: list) -> dict:
 
 
 def check_file_structure(analysis_dir: Path) -> dict:
-    """检查预期文件是否存在"""
-    results = {"pass": [], "fail": []}
-    for filename in EXPECTED_FILES:
+    results = {"pass": [], "fail": [], "optional_pass": [], "optional_fail": []}
+    for filename in REQUIRED_FILES:
         filepath = analysis_dir / filename
         if filepath.exists():
             results["pass"].append(filename)
         else:
             results["fail"].append(filename)
+    for filename in OPTIONAL_FILES:
+        filepath = analysis_dir / filename
+        if filepath.exists():
+            results["optional_pass"].append(filename)
+        else:
+            results["optional_fail"].append(filename)
     return results
 
 
@@ -591,7 +316,6 @@ def check_file_structure(analysis_dir: Path) -> dict:
 
 
 def check_vague_terms(content: str) -> list:
-    """检测模糊表述"""
     issues = []
     lines = content.split("\n")
     for i, line in enumerate(lines, 1):
@@ -606,111 +330,51 @@ def check_vague_terms(content: str) -> list:
 # ──────────────────────────────────────────────
 
 
-def check_sections(content: str, expected_sections: list) -> dict:
-    """检查文档是否包含预期章节"""
-    results = {"pass": [], "fail": []}
-    for section in expected_sections:
-        if section in content:
-            results["pass"].append(section)
+def check_sections(content: str, expected_chapters: list, optional_chapters: list = None) -> dict:
+    results = {"pass": [], "fail": [], "optional_pass": [], "optional_fail": []}
+    for chapter in expected_chapters:
+        if chapter in content:
+            results["pass"].append(chapter)
         else:
-            results["fail"].append(section)
+            results["fail"].append(chapter)
+    if optional_chapters:
+        for chapter in optional_chapters:
+            if chapter in content:
+                results["optional_pass"].append(chapter)
+            else:
+                results["optional_fail"].append(chapter)
     return results
 
 
-def check_card_fields(content: str) -> dict:
+# ──────────────────────────────────────────────
+# P0 必填小节检查
+# ──────────────────────────────────────────────
+
+
+def check_p0_sections(content: str) -> dict:
     """
-    检查 final-analysis.md 中需求分析卡的字段完整性。
-    定位「交付物 A：需求分析卡」或「需求分析卡」章节（## 级别），
-    提取所有表格数据行的第一列作为字段名，与 REQUIRED_CARD_FIELDS 对比。
+    检查 final-analysis.md 中 P0 必填小节是否存在。
+    替代原「需求分析卡字段完整性」检查。
 
     返回：
       {
-        "missing": [...],   # 必填但缺失的字段
-        "extra": [...],     # 存在但不在必填列表的字段
-        "found": [...],     # 实际找到的所有字段名
-        "status": "PASS" | "WARN" | "FAIL"
+        "missing": [...],   # 缺失的 P0 小节列表
+        "found": [...],     # 存在的 P0 小节列表
+        "status": "PASS" | "FAIL"
       }
     """
-    lines = content.split("\n")
-    in_card_section = False
-    found_fields = []
-    in_code_block = False
+    missing = []
+    found = []
 
-    CARD_SECTION_KEYWORDS = ["需求分析卡", "交付物 A", "交付物A"]
+    for section_num, section_name in P0_REQUIRED_SECTIONS:
+        pattern = f"{section_num}.*{section_name}"
+        if re.search(pattern, content):
+            found.append(f"{section_num} {section_name}")
+        else:
+            missing.append(f"{section_num} {section_name}")
 
-    # 记录进入卡片区域时的标题级别（1 或 2），以便遇到同级或更高标题时退出
-    card_heading_level = None
-
-    for line in lines:
-        if line.strip().startswith("```"):
-            in_code_block = not in_code_block
-            continue
-        if in_code_block:
-            continue
-
-        # 检查标题行（# 或 ## 或 ### 等）
-        heading_match = re.match(r"^(#{1,6})\s", line)
-        if heading_match:
-            heading_level = len(heading_match.group(1))
-            heading_text = line.strip()
-
-            if not in_card_section:
-                # 尚未进入卡片区域：检查是否是卡片标题（支持 # 和 ## 两级）
-                if heading_level <= 2 and any(kw in heading_text for kw in CARD_SECTION_KEYWORDS):
-                    in_card_section = True
-                    card_heading_level = heading_level
-            else:
-                # 已在卡片区域内：遇到同级或更高标题时退出
-                if heading_level <= card_heading_level:
-                    break
-            continue
-
-        if not in_card_section:
-            continue
-
-        if "|" not in line or is_table_separator(line):
-            continue
-
-        cells = table_cells(line)
-        if not cells:
-            continue
-
-        field_name = re.sub(r"\*\*", "", cells[0]).strip()
-
-        if field_name in ("字段", "内容", "来源追溯", "来源", ""):
-            continue
-
-        if not field_name or field_name in ("—", "-"):
-            continue
-
-        found_fields.append(field_name)
-
-    if not found_fields:
-        return {
-            "missing": REQUIRED_CARD_FIELDS[:],
-            "extra": [],
-            "found": [],
-            "status": "FAIL",
-        }
-
-    required_set = set(REQUIRED_CARD_FIELDS)
-    found_set = set(found_fields)
-
-    missing = [f for f in REQUIRED_CARD_FIELDS if f not in found_set]
-    extra = [f for f in found_fields if f not in required_set]
-
-    # 扩展字段（extra）是模板增强，不视为问题；仅 missing 才降级
-    if missing:
-        status = "FAIL"
-    else:
-        status = "PASS"
-
-    return {
-        "missing": missing,
-        "extra": extra,
-        "found": found_fields,
-        "status": status,
-    }
+    status = "FAIL" if missing else "PASS"
+    return {"missing": missing, "found": found, "status": status}
 
 
 # ──────────────────────────────────────────────
@@ -732,94 +396,69 @@ def print_section(title: str):
 # 量化评分
 # ──────────────────────────────────────────────
 
-# 各维度满分
 SCORE_WEIGHTS = {
-    "file_structure": 20,  # 5个文件各4分
-    "traceability": 30,  # 3个被检文件各10分，按 pass_rate 线性折算
-    "card_fields": 25,  # 14个必填字段线性折算
-    "sections": 15,  # 5个必要章节各3分
-    "vague_terms": 10,  # 0处=10分，每处扣2分，最低0
+    "file_structure": 20,
+    "traceability": 25,
+    "p0_sections": 25,
+    "chapters": 20,
+    "vague_terms": 10,
 }
 
 
 def compute_score(analysis_dir: Path) -> dict:
-    """
-    计算分析目录的量化得分（0-100）。
-
-    Returns:
-        {
-            "total": int,          # 总分 0-100
-            "dimensions": {
-                "file_structure": int,
-                "traceability":   int,
-                "card_fields":    int,
-                "sections":       int,
-                "vague_terms":    int,
-            },
-            "pass": bool,          # 是否通过（无 FAIL 维度）
-        }
-    """
     dims = {}
     failed = False
 
-    # ── 1. 文件结构（20分，5个文件各4分）──
+    # ── 1. 文件结构（20分，3个必需文件各约6.67分）──
     structure = check_file_structure(analysis_dir)
     missing_count = len(structure["fail"])
-    dims["file_structure"] = max(0, SCORE_WEIGHTS["file_structure"] - missing_count * 4)
+    per_file = SCORE_WEIGHTS["file_structure"] // len(REQUIRED_FILES) if REQUIRED_FILES else 0
+    dims["file_structure"] = max(0, SCORE_WEIGHTS["file_structure"] - missing_count * per_file)
     if missing_count > 0:
         failed = True
 
-    # ── 2. 来源追溯（30分，3个被检文件各10分按 pass_rate 折算）──
-    trace_files = [
-        ("input-structured.md", check_traceability_input_structured),
-        ("gap-analysis.md", check_traceability_gap_analysis),
-        ("final-analysis.md", check_traceability_final_analysis),
-    ]
-    trace_score = 0
-    per_file = SCORE_WEIGHTS["traceability"] // len(trace_files)  # 10
-    for fname, checker in trace_files:
-        fpath = analysis_dir / fname
-        if not fpath.exists():
-            continue  # 文件缺失已在 file_structure 扣分
+    # ── 2. 来源追溯（25分）──
+    fpath = analysis_dir / "final-analysis.md"
+    if fpath.exists():
         content = fpath.read_text(encoding="utf-8")
-        result = checker(content)
-        file_score = round(per_file * result["pass_rate"])
-        trace_score += file_score
-        if result["pass_rate"] < 0.8:
-            failed = True
-    dims["traceability"] = min(SCORE_WEIGHTS["traceability"], trace_score)
-
-    # ── 3. 字段完整性（25分，14个必填字段线性折算）──
-    final_path = analysis_dir / "final-analysis.md"
-    if final_path.exists():
-        content = final_path.read_text(encoding="utf-8")
-        card = check_card_fields(content)
-        found = len(card["found"])
-        required = len(REQUIRED_CARD_FIELDS)
-        dims["card_fields"] = round(SCORE_WEIGHTS["card_fields"] * found / required)
-        if card["status"] == "FAIL":
+        trace = check_traceability_final_analysis(content)
+        dims["traceability"] = round(SCORE_WEIGHTS["traceability"] * trace["pass_rate"])
+        if trace["pass_rate"] < 0.8:
             failed = True
     else:
-        dims["card_fields"] = 0
+        dims["traceability"] = 0
 
-    # ── 4. 章节完整性（15分，5个必要章节各3分）──
-    if final_path.exists():
-        content = final_path.read_text(encoding="utf-8")
-        sections_result = check_sections(content, EXPECTED_SECTIONS["final-analysis.md"])
-        missing_sections = len(sections_result["fail"])
-        dims["sections"] = max(0, SCORE_WEIGHTS["sections"] - missing_sections * 3)
-        if missing_sections > 0:
+    # ── 3. P0 小节完整性（25分，8个P0小节各约3.125分）──
+    if fpath.exists():
+        content = fpath.read_text(encoding="utf-8")
+        p0 = check_p0_sections(content)
+        found_count = len(p0["found"])
+        total_p0 = len(P0_REQUIRED_SECTIONS)
+        dims["p0_sections"] = round(SCORE_WEIGHTS["p0_sections"] * found_count / total_p0)
+        if p0["status"] == "FAIL":
             failed = True
     else:
-        dims["sections"] = 0
+        dims["p0_sections"] = 0
 
-    # ── 5. 模糊表述控制（10分，每处扣2分，最低0）──
+    # ── 4. 章节完整性（20分，8个必须章节各2.5分）──
+    if fpath.exists():
+        content = fpath.read_text(encoding="utf-8")
+        chapters_result = check_sections(content, EXPECTED_CHAPTERS, OPTIONAL_CHAPTERS)
+        missing_chapters = len(chapters_result["fail"])
+        per_chapter = (
+            SCORE_WEIGHTS["chapters"] // len(EXPECTED_CHAPTERS) if EXPECTED_CHAPTERS else 0
+        )
+        dims["chapters"] = max(0, SCORE_WEIGHTS["chapters"] - missing_chapters * per_chapter)
+        if missing_chapters > 0:
+            failed = True
+    else:
+        dims["chapters"] = 0
+
+    # ── 5. 模糊表述控制（10分，每处扣2分）──
     vague_count = 0
-    for fname in VAGUE_CHECK_FILES:
-        fpath = analysis_dir / fname
-        if fpath.exists():
-            content = fpath.read_text(encoding="utf-8")
-            vague_count += len(check_vague_terms(content))
+    if fpath.exists():
+        content = fpath.read_text(encoding="utf-8")
+        vague_count = len(check_vague_terms(content))
     dims["vague_terms"] = max(0, SCORE_WEIGHTS["vague_terms"] - vague_count * 2)
 
     total = sum(dims.values())
@@ -831,26 +470,26 @@ def compute_score(analysis_dir: Path) -> dict:
 
 
 # ──────────────────────────────────────────────
+# 溯追溯检查器映射
+# ──────────────────────────────────────────────
+
+TRACEABILITY_CHECKERS = {
+    "final-analysis.md": check_traceability_final_analysis,
+    "change-log.md": None,
+    "quality-report.md": None,
+    "quick-analysis.md": None,
+}
+
+VAGUE_CHECK_FILES = {"final-analysis.md"}
+
+
+# ──────────────────────────────────────────────
 # 主验证流程
 # ──────────────────────────────────────────────
 
-# 每个文件对应的追溯检查函数
-# None = 跳过（过程文档/AI评估文档，无需追溯）
-TRACEABILITY_CHECKERS = {
-    "input-structured.md": check_traceability_input_structured,
-    "gap-analysis.md": check_traceability_gap_analysis,
-    "change-log.md": None,  # 跳过：协作过程记录，确认方字段已作为来源
-    "quality-report.md": None,  # 跳过：纯AI评估，无需来源标注
-    "final-analysis.md": check_traceability_final_analysis,
-}
-
-# 只对这些文件检查模糊表述（final-analysis 是交付物，必须无模糊词）
-VAGUE_CHECK_FILES = {"input-structured.md", "final-analysis.md"}
-
 
 def run_validation(analysis_dir: Path):
-    """运行完整验证"""
-    print_header("UX 需求分析质量门禁校验")
+    print_header("UX 需求分析质量门禁校验（v0.4.0）")
     print(f"分析目录：{analysis_dir}")
 
     total_issues = 0
@@ -868,9 +507,16 @@ def run_validation(analysis_dir: Path):
             print(f"  ✗ 缺失: {f}")
         total_issues += len(structure["fail"])
         failed_dimensions.append("文件结构")
+    if structure["optional_pass"]:
+        for f in structure["optional_pass"]:
+            print(f"  ✓ {f}（可选）")
+    if structure["optional_fail"]:
+        for f in structure["optional_fail"]:
+            print(f"  ○ 未提供: {f}（可选，不影响评分）")
 
     # ─ 2. 各文件逐项检查 ─
-    for filename in EXPECTED_FILES:
+    all_files = REQUIRED_FILES + OPTIONAL_FILES
+    for filename in all_files:
         filepath = analysis_dir / filename
         if not filepath.exists():
             continue
@@ -878,13 +524,13 @@ def run_validation(analysis_dir: Path):
         content = filepath.read_text(encoding="utf-8")
         print_section(f"2. {filename}")
 
-        # 可追溯性
         checker = TRACEABILITY_CHECKERS.get(filename)
         if checker is None:
             skip_reason = {
-                "change-log.md": "协作过程记录，确认方字段已记录来源",
-                "quality-report.md": "AI评估文档，无需来源标注",
-            }.get(filename, "过程文档，无需来源标注")
+                "change-log.md": "协作过程记录",
+                "quality-report.md": "AI评估文档",
+                "quick-analysis.md": "Quick Mode 快速分析",
+            }.get(filename, "过程文档")
             print(f"  来源追溯: — 跳过（{skip_reason}）")
         else:
             trace = checker(content)
@@ -900,7 +546,6 @@ def run_validation(analysis_dir: Path):
                 if pass_rate < 80:
                     failed_dimensions.append(f"{filename} 可追溯性")
 
-        # 模糊表述（只检查交付物文件）
         if filename in VAGUE_CHECK_FILES:
             vague = check_vague_terms(content)
             if vague:
@@ -911,35 +556,34 @@ def run_validation(analysis_dir: Path):
             else:
                 print("  模糊表述: ✓ PASS")
         else:
-            print("  模糊表述: — 跳过（过程文档）")
+            print("  模糊表述: — 跳过")
 
-        # 章节检查（针对 final-analysis.md）
-        if filename in EXPECTED_SECTIONS:
-            sections = check_sections(content, EXPECTED_SECTIONS[filename])
-            if sections["fail"]:
-                print(f"  章节完整性: ✗ FAIL（缺失 {len(sections['fail'])} 个章节）")
-                for s in sections["fail"]:
-                    print(f"    缺失: {s}")
-                failed_dimensions.append(f"{filename} 章节")
-            else:
-                print("  章节完整性: ✓ PASS")
-
-        # 字段完整性检查（针对 final-analysis.md 的需求分析卡）
         if filename == "final-analysis.md":
-            card = check_card_fields(content)
-            total = len(card["found"])
-            required_count = len(REQUIRED_CARD_FIELDS)
-            if card["status"] == "PASS":
-                # 扩展字段不计入问题数，输出时仅显示必填字段数量
-                print(f"  字段完整性: ✓ PASS（{required_count}/{required_count} 必填字段）")
-            else:  # FAIL
-                missing_fields = card["missing"]
-                missing_preview = "、".join(missing_fields[:5])
-                if len(missing_fields) > 5:
-                    missing_preview += f"... 共{len(missing_fields)}个"
-                print(f"  字段完整性: ✗ FAIL（缺失必填字段：{missing_preview}）")
-                total_issues += len(card["missing"])
-                failed_dimensions.append(f"{filename} 字段完整性")
+            chapters_result = check_sections(content, EXPECTED_CHAPTERS, OPTIONAL_CHAPTERS)
+            if chapters_result["fail"]:
+                print(f"  章节完整性: ✗ FAIL（缺失 {len(chapters_result['fail'])} 个必须章节）")
+                for s in chapters_result["fail"]:
+                    print(f"    缺失: {s}")
+                failed_dimensions.append("章节完整性")
+            else:
+                found_count = len(chapters_result["pass"])
+                print(f"  章节完整性: ✓ PASS（{found_count}/{len(EXPECTED_CHAPTERS)} 必须章节）")
+            if chapters_result["optional_fail"]:
+                for s in chapters_result["optional_fail"]:
+                    print(f"    ○ 可选章节缺失: {s}")
+
+            p0 = check_p0_sections(content)
+            if p0["status"] == "PASS":
+                print(
+                    f"  P0 小节完整性: ✓ PASS（{len(p0['found'])}/{len(P0_REQUIRED_SECTIONS)} P0 小节）"
+                )
+            else:
+                missing_preview = "、".join(p0["missing"][:5])
+                if len(p0["missing"]) > 5:
+                    missing_preview += f"... 共{len(p0['missing'])}个"
+                print(f"  P0 小节完整性: ✗ FAIL（缺失P0小节：{missing_preview}）")
+                total_issues += len(p0["missing"])
+                failed_dimensions.append("P0 小节完整性")
 
     # ─ 3. 总结 ─
     print_header("验证结果汇总")
@@ -949,11 +593,11 @@ def run_validation(analysis_dir: Path):
         print(f"  失败维度:")
         for d in failed_dimensions:
             print(f"    - {d}")
-        print("\n  建议：返回 Stage 3 补充缺失内容后重新运行验证")
+        print("\n  建议：补充缺失内容后重新运行验证")
     else:
         print(f"  状态: ✓ PASS")
         print(f"  总问题数: {total_issues}（均为 WARN，不阻断）")
-        print("\n  可以进入 Stage 5 整合输出")
+        print("\n  分析说明书已可交付设计分析阶段")
 
     return len(failed_dimensions) == 0
 
