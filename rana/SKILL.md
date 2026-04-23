@@ -253,9 +253,9 @@ flowchart TD
 
 | Stage | 名称 | 输出章节 | 核心动作 | 详情指引 |
 |-------|------|---------|---------|---------|
-| 1 | 诊断层 | 二（用户）、三（现状）、四（业务目标） | 找病因 + 按需协作 | `references/stage-1-diagnosis.md` |
-| 2 | 方案层 | 五（策略）、六（方案与验证）、七（风险）、八（各角色关注） | 开药方 + 按需协作 | `references/stage-2-solution.md` |
-| 3 | 提炼层 | 一（概述）+ 总结 | 倒推提炼 + 按需协作 | `references/stage-3-refine.md` |
+| 1 | 诊断层 | 二（用户）、三（现状）、四（业务目标） | 找病因 + 按需协作 | `references/stage-1-diagnosis.md` + `references/analysis-methods.md`（五问法/X-Y Problem/场景还原法） |
+| 2 | 方案层 | 五（策略）、六（方案与验证）、七（风险）、八（各角色关注） | 开药方 + 按需协作 | `references/stage-2-solution.md` + `references/analysis-methods.md`（HMW 发散法） |
+| 3 | 提炼层 | 一（概述）+ 总结 | 倒推提炼 + 按需协作 | `references/stage-3-refine.md` + `references/analysis-methods.md`（MVP 敏捷拆解法） |
 
 **四段式输出结构**（每个 Stage 结束时执行）：
 ```
