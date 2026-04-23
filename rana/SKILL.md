@@ -225,8 +225,6 @@ flowchart TD
 - 知识库地址：`http://10.109.65.184:3000/zh-context/`（不可访问时跳过检索）
 - PDF 处理：CLI 环境需 pdfplumber 预处理
 - 同一需求多次分析独立存放，互不干扰
-- Quick Mode 不适用 P0 缺口规则（无分阶段输出）
-- Quick Mode 不执行 quality-validator 质量验证
 
 ---
 
