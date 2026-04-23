@@ -60,6 +60,8 @@
 
 ## 处理逻辑
 
-- 无 P0 缺口 → 自动进入下一 Stage
+- 无 P0 缺口 → 进入协作确认环节（确认推断项、存疑点），确认后进入下一 Stage
 - 有 P0 缺口 → 进入协作讨论环节（多轮对话，人在环中）
+- 即使无 P0 缺口，不可直接跳至下一阶段，必须经过用户确认
 - 各 Stage 的协作讨论均可触发批判反驳机制（见 `references/collaboration-protocol.md`）
+- 四段式输出通用结构见 `references/collaboration-protocol.md`
