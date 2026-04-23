@@ -1,6 +1,6 @@
 ---
 name: rana
-version: 0.4.0 alpha
+version: 0.4.1
 license: MIT
 description: |
     UX 需求分析助手。帮助交互设计师对 PM 的 PRD/需求清单进行结构化分析，输出可直接进入设计分析阶段的交付物。
@@ -232,6 +232,8 @@ flowchart TD
 
 ## 引用文件
 
+- `references/workflow-quick-mode-guideline.md` — Quick Mode 全流程
+- `references/workflow-full-mode-guideline.md` — Full Mode 串联流程 + 质量验证 + 多功能处理
 - `references/stage-1-diagnosis.md` — 诊断层详细流程
 - `references/stage-2-solution.md` — 方案层详细流程
 - `references/stage-3-refine.md` — 提炼层详细流程
