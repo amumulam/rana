@@ -13,11 +13,13 @@ rana 部署在公司自托管的 Mattermost 平台上。出于信息安全考虑
 1. 点击[加入官网团队](http://10.109.65.184:8065/signup_user_complete/?id=qkg155ogf7du78faaq73obxboc)链接加入组织
 2. 使用个人邮箱注册账号，设置密码（无需企业邮箱或企业账号，个人邮箱即可）
 
-<p style="color:rgba(0,0,0,0.5)"><img src="./assets/login.png" width="50%" style="border-radius:16px;border:1px solid rgba(0,0,0,0.2)" alt="注册账号并登录"><br>注册账号并登录</p>
+<img src="./assets/login.png" width="50%" alt="注册账号并登录">
+*注册账号并登录*
 
 3. 登录成功后进入**广场频道（Town Square）**
 
-<p style="color:rgba(0,0,0,0.5)"><img src="./assets/townsquare.png" width="50%" style="border-radius:16px;border:1px solid rgba(0,0,0,0.2)" alt="广场频道首页"><br>广场频道首页</p>
+<img src="./assets/townsquare.png" width="50%" alt="广场频道首页">
+*广场频道首页*
 
 ---
 
@@ -29,11 +31,13 @@ rana 部署在公司自托管的 Mattermost 平台上。出于信息安全考虑
 
 1. 在左侧频道列表顶部搜索 **rana**
 
-<p style="color:rgba(0,0,0,0.5)"><img src="./assets/search.png" width="50%" style="border-radius:16px;border:1px solid rgba(0,0,0,0.2)" alt="搜索 rana"><br>搜索 rana</p>
+<img src="./assets/search.png" width="50%" alt="搜索 rana">
+*搜索 rana*
 
 2. 点击 rana 的头像，发起**直接消息（Direct Message）**
 
-<p style="color:rgba(0,0,0,0.5)"><img src="./assets/dm.png" width="50%" style="border-radius:16px;border:1px solid rgba(0,0,0,0.2)" alt="与 rana 的直接消息对话界面"><br>与 rana 的直接消息对话界面</p>
+<img src="./assets/dm.png" width="50%" alt="与 rana 的直接消息对话界面">
+*与 rana 的直接消息对话界面*
 
 ### 方式二：独立频道（推荐）
 
@@ -41,15 +45,18 @@ rana 部署在公司自托管的 Mattermost 平台上。出于信息安全考虑
 
 1. 在左侧面板点击 **+** 创建新频道
 
-<p style="color:rgba(0,0,0,0.5)"><img src="./assets/createchannel.png" width="50%" style="border-radius:16px;border:1px solid rgba(0,0,0,0.2)" alt="点击 + 号创建新频道"><br>点击 + 号创建新频道</p>
+<img src="./assets/createchannel.png" width="50%" alt="点击 + 号创建新频道">
+*点击 + 号创建新频道*
 
 2. 设置频道名称（如 `需求分析-服务首页优化`），选择公开或私有
 
-<p style="color:rgba(0,0,0,0.5)"><img src="./assets/createchannelinfo.png" width="50%" style="border-radius:16px;border:1px solid rgba(0,0,0,0.2)" alt="设置频道名称与类型"><br>设置频道名称与类型</p>
+<img src="./assets/createchannelinfo.png" width="50%" alt="设置频道名称与类型">
+*设置频道名称与类型*
 
 3. 创建后点击频道成员管理，**Add Member** 加入 **rana**
 
-<p style="color:rgba(0,0,0,0.5)"><img src="./assets/addranatochannel.png" width="50%" style="border-radius:16px;border:1px solid rgba(0,0,0,0.2)" alt="在成员列表中添加 rana"><br>在成员列表中添加 rana</p>
+<img src="./assets/addranatochannel.png" width="50%" alt="在成员列表中添加 rana">
+*在成员列表中添加 rana*
 
 4. 在频道中直接 @rana 或直接发送消息即可
 
