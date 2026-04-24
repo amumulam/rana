@@ -10,11 +10,14 @@ rana 部署在公司自托管的 Mattermost 平台上。出于信息安全考虑
 
 **操作步骤：**
 
-1. 点击**邀请链接**加入组织
-2. 使用工作邮箱注册账号，设置密码
+1. 点击[加入官网团队](http://10.109.65.184:8065/signup_user_complete/?id=qkg155ogf7du78faaq73obxboc)链接加入组织
+2. 使用个人邮箱注册账号，设置密码（无需企业邮箱或企业账号，个人邮箱即可）
+
+![登录](./assets/login.png){width=50%}
+
 3. 登录成功后进入**广场频道（Town Square）**
 
-![加入组织](./assets/01-join-organization.png)
+![广场频道](./assets/townsquare.png){width=50%}
 
 ---
 
@@ -25,33 +28,32 @@ rana 部署在公司自托管的 Mattermost 平台上。出于信息安全考虑
 适用于临时、单一的需求快速分析。
 
 1. 在左侧频道列表顶部搜索 **rana**
+
+![搜索](./assets/search.png){width=50%}
+
 2. 点击 rana 的头像，发起**直接消息（Direct Message）**
 
-![私聊方式](./assets/02-direct-message.png)
+![私聊界面](./assets/dm.png){width=50%}
 
 ### 方式二：独立频道（推荐）
 
 适用于需要多轮讨论、需要保留完整上下文的正式需求分析。
 
 1. 在左侧面板点击 **+** 创建新频道
+
+![创建频道](./assets/createchannel.png){width=50%}
+
 2. 设置频道名称（如 `需求分析-服务首页优化`），选择公开或私有
+
+![频道设置](./assets/createchannelinfo.png){width=50%}
+
 3. 创建后点击频道成员管理，**Add Member** 加入 **rana**
+
+![添加 rana](./assets/addranatochannel.png){width=50%}
+
 4. 在频道中直接 @rana 或直接发送消息即可
 
-![频道方式](./assets/03-create-channel.png)
-
 > 频道的优势：对话记录按需求隔离、可邀请团队成员旁听、不会与其他会话混淆。
-
-<!-- ---
-
-## 使用技巧
-
-| 场景 | 操作 |
-|------|------|
-| 清除会话历史 | 发送 `/clear`（不可恢复，慎用） |
-| 分析 PDF/PRD | 直接将文件拖入聊天框发送 |
-| 快速分析（Quick Mode） | 发送需求文本 + 提及"快速分析" |
-| 完整分析（Full Mode） | 发送需求文本 + 提及"完整分析" | -->
 
 ---
 
