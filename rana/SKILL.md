@@ -1,6 +1,6 @@
 ---
 name: rana
-version: 0.4.0 alpha
+version: 0.4.1
 license: MIT
 description: |
     UX 需求分析助手。帮助交互设计师对 PM 的 PRD/需求清单进行结构化分析，输出可直接进入设计分析阶段的交付物。
@@ -208,94 +208,15 @@ flowchart TD
 
 ---
 
-## Quick Mode 流程
+## Quick Mode
 
-```mermaid
-flowchart TD
-    QIN["输入材料"] --> Q1["Step 1: 输出快速分析（四维度）"]
-    Q1 --> QWAIT["⚠️ 暂停输出，等待用户回复"]
-    QWAIT --> Q2["Step 2: 深度分析与讨论（多轮对话）"]
-    Q2 --> Q2A["主动抛出探讨性问题"]
-    Q2A --> Q2B{"用户反对?"}
-    Q2B -- 是 --> Q2C["按批判反驳机制处理（5步流程）"]
-    Q2C --> Q2D{"讨论完成?"}
-    Q2B -- 否 --> Q2D
-    Q2D -- "还有疑点" --> Q2A
-    Q2D -- "用户确认清晰" --> Q3["Step 3: 输出评审澄清提问清单（≥3个）"]
-    Q3 --> Q4["Step 4: 末尾附升级提示"]
-```
-
-**Step 1**：读取 `assets/analysis-template-quick.md`，填充四维度快速分析。
-
-> 🚨 **强制约束（防退化机制）**：
-> 1. **必须 100% 复制**模板中的 Markdown 表格结构（表头和左侧维度列），**绝对禁止**自行发明列表、编号或更改表格结构！
-> 2. **禁止纯摘要**：必须包含你的专业判断。特别是"供给"维度的"批判性判断"，必须指出逻辑漏洞或更优解。
-> 3. **必须执行推断**：遇到 PRD 未提及的信息，绝不允许留空或只写"未提及"，必须使用 `[AI推断]` 给出合理估算。
-> 4. **输出完 Step 1 的四个表格后，必须立即停止输出！** 抛出 1-2 个探讨性问题并等待用户回复，**绝对禁止**在第一轮对话就直接输出"提问清单（Step 3）"。
-
-**Step 2**：基于快速分析发起深度分析与讨论（多轮对话）：
-- 主动抛出探讨性问题：
-  - "我注意到这个供给可能存在XXX问题，你觉得呢？"
-  - "有没有考虑过XXX场景下可能出现的情况？"
-  - "这个指标是否真的能反映目标的达成？我们是否需要补充XXX指标？"
-  - "业务目标和用户目标之间是否存在冲突？如果有，我们如何平衡？"
-- 若用户反对 → 按批判反驳机制处理（见 `references/collaboration-protocol.md`）
-- 不断迭代分析结果，直到用户确认逻辑清晰。
-
-**Step 3**：用户明确表示"没有问题了/可以了/出提问清单吧"后 → 严格按照模板表格输出评审澄清提问清单（≥3 个犀利提问）。
-
-**Step 4**：末尾附升级提示：*"已为您快速提取核心漏洞。若需基于此需求输出完整的 Full Mode 分析说明书，请回复「执行 Full Mode」。"*
-
+→ 详见 `references/workflow-quick-mode-guideline.md`
 
 ---
 
-## Full Mode 三阶段概览
+## Full Mode
 
-| Stage | 名称 | 输出章节 | 核心动作 | 详情指引 |
-|-------|------|---------|---------|---------|
-| 1 | 诊断层 | 二（用户）、三（现状）、四（业务目标） | 找病因 + 按需协作 | `references/stage-1-diagnosis.md` + `references/analysis-methods.md`（五问法/X-Y Problem/场景还原法） |
-| 2 | 方案层 | 五（策略）、六（方案与验证）、七（风险）、八（各角色关注） | 开药方 + 按需协作 | `references/stage-2-solution.md` + `references/analysis-methods.md`（HMW 发散法） |
-| 3 | 提炼层 | 一（概述）+ 总结 | 倒推提炼 + 按需协作 | `references/stage-3-refine.md` + `references/analysis-methods.md`（MVP 敏捷拆解法） |
-
-**四段式输出结构**（每个 Stage 结束时执行）：
-```
-消息块 1（引导语）：[阶段描述]
-消息块 2（报告本体）：逐字全文输出，不省略、不截断、不使用代码块包裹
-消息块 3（缺口清单）：无缺口 → ✓ 无 P0 缺口阻塞；有缺口 → 缺口表格
-消息块 4（确认提示语）：[确认语]
-```
-
-**通用规则**：
-- 各 Stage 均可按需触发协作讨论（缺口/疑点/批判反驳）
-- 协作讨论为多轮对话（人在环中），规范见 `references/collaboration-protocol.md`
-- P0 缺口规则见 `references/p0-gates.md`
-- 缺口补完后不重新输出报告本体，仅输出确认
-
----
-
-## 多功能需求处理
-
-当 PRD 包含多个独立功能点时：
-
-- **Stage 1**：识别功能点清单，向用户确认功能边界
-- **Stage 2**：协作讨论按功能点逐项澄清
-- **Stage 3**：功能点分节仅在六、需求清单中体现；五、七、八章节保持整体输出
-
-P0 缺口按功能点独立判断。
-
----
-
-## 质量验证（仅 Full Mode）
-
-Stage 3 完成后，运行质量门禁校验脚本验证输出完整性：
-
-```bash
-python3 rana/scripts/quality-validator.py <分析目录> [--score]
-```
-
-**Quick Mode 不执行质量验证**（Quick Mode 不产生 final-analysis.md，不符合校验前提）。
-
-校验内容：文件结构、来源追溯、P0 小节完整性、章节完整性、模糊表述。详见 `references/quality-validator.md`。
+→ 详见 `references/workflow-full-mode-guideline.md`
 
 ---
 
@@ -304,13 +225,13 @@ python3 rana/scripts/quality-validator.py <分析目录> [--score]
 - 知识库地址：`http://10.109.65.184:3000/zh-context/`（不可访问时跳过检索）
 - PDF 处理：CLI 环境需 pdfplumber 预处理
 - 同一需求多次分析独立存放，互不干扰
-- Quick Mode 不适用 P0 缺口规则（无分阶段输出）
-- Quick Mode 不执行 quality-validator 质量验证
 
 ---
 
 ## 引用文件
 
+- `references/workflow-quick-mode-guideline.md` — Quick Mode 全流程
+- `references/workflow-full-mode-guideline.md` — Full Mode 串联流程 + 质量验证 + 多功能处理
 - `references/stage-1-diagnosis.md` — 诊断层详细流程
 - `references/stage-2-solution.md` — 方案层详细流程
 - `references/stage-3-refine.md` — 提炼层详细流程

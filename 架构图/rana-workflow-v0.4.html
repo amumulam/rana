@@ -1,0 +1,343 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.flow{display:flex;flex-direction:column;align-items:center;gap:0;padding:16px 0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;width:900px;margin:0 auto}
+.phase-label{font-size:11px;font-weight:500;letter-spacing:.5px;color:#666;text-transform:uppercase;margin:14px 0 6px;align-self:flex-start;padding-left:12px}
+.nd{border-radius:10px;padding:10px 14px;text-align:center;width:480px;position:relative;border-width:1px;border-style:solid;background:#fff}
+.nd-title{font-size:13px;font-weight:500;line-height:1.3}
+.nd-sub{font-size:11px;line-height:1.4;margin-top:3px;opacity:.85}
+.nd-fmt{font-size:10px;font-family:"SF Mono",Monaco,Consolas,monospace;padding:2px 6px;border-radius:4px;margin-top:5px;display:inline-block}
+.nd-start{background:#EEEDFE;border-color:#534AB7;color:#3C3489}
+.nd-start .nd-fmt{background:#CECBF6;color:#3C3489}
+.nd-auto{background:#f8f8f8;border-color:#ccc;color:#333}
+.nd-auto .nd-fmt{background:#e8e8e8;color:#666}
+.nd-human{background:#E1F5EE;border-color:#0F6E56;color:#085041;position:relative}
+.nd-human .nd-fmt{background:#9FE1CB;color:#085041}
+.nd-human::before{content:"";position:absolute;top:-3px;left:-3px;right:-3px;bottom:-3px;border:1.5px dashed #0F6E56;border-radius:12px;pointer-events:none}
+.nd-out{background:#FAECE7;border-color:#993C1D;color:#712B13}
+.nd-out .nd-fmt{background:#F5C4B3;color:#712B13}
+.nd-check{background:#FFF9E6;border-color:#D4A500;color:#8B6914}
+.nd-check .nd-fmt{background:#FFE4A0;color:#8B6914}
+.nd-quick{background:#E3F2FD;border-color:#1565C0;color:#0D47A1}
+.nd-quick .nd-fmt{background:#BBDEFB;color:#0D47A1}
+.nd-full{background:#F3E5F5;border-color:#7B1FA2;color:#4A148C}
+.nd-full .nd-fmt{background:#E1BEE7;color:#4A148C}
+.nd-kb{background:#E6F1FB;border-color:#185FA5;color:#0C447C;width:180px;font-size:11px;padding:8px 10px}
+.nd-kb .nd-title{font-size:11px}
+.nd-kb .nd-sub{font-size:10px;font-family:"SF Mono",Monaco,Consolas,monospace}
+.nd-fail{background:#FDEAEA;border-color:#C62828;color:#8B0000}
+.nd-fail .nd-fmt{background:#F8BBD0;color:#8B0000}
+.arrow{width:2px;height:18px;background:#ccc;position:relative;margin:0 auto}
+.arrow::after{content:"";position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid #ccc}
+.step-num{position:absolute;top:8px;left:10px;font-size:9px;font-weight:500;opacity:.5}
+.kb-row{display:flex;align-items:center;gap:8px;width:480px;justify-content:center}
+.kb-connector{border-top:1px dashed #185FA5;width:20px;flex-shrink:0;opacity:.5}
+.human-tag{font-size:9px;font-weight:500;color:#0F6E56;background:#E1F5EE;border:1px solid #0F6E56;padding:0 5px;border-radius:3px;display:inline-block;margin-bottom:4px}
+.auto-tag{font-size:9px;font-weight:500;color:#3C3489;background:#EEEDFE;border:1px solid #534AB7;padding:0 5px;border-radius:3px;display:inline-block;margin-bottom:4px}
+.check-tag{font-size:9px;font-weight:500;color:#8B6914;background:#FFF9E6;border:1px solid #D4A500;padding:0 5px;border-radius:3px;display:inline-block;margin-bottom:4px}
+.fail-tag{font-size:9px;font-weight:500;color:#C62828;background:#FDEAEA;border:1px solid #C62828;padding:0 5px;border-radius:3px;display:inline-block;margin-bottom:4px}
+.quick-tag{font-size:9px;font-weight:500;color:#1565C0;background:#E3F2FD;border:1px solid #1565C0;padding:0 5px;border-radius:3px;display:inline-block;margin-bottom:4px}
+.full-tag{font-size:9px;font-weight:500;color:#7B1FA2;background:#F3E5F5;border:1px solid #7B1FA2;padding:0 5px;border-radius:3px;display:inline-block;margin-bottom:4px}
+.detail-box{border:1px solid #ddd;border-radius:8px;background:#f8f8f8;padding:10px 14px;margin-top:6px;text-align:left;width:480px}
+.dt-title{font-size:11px;font-weight:500;color:#333;margin-bottom:6px}
+.dt-row{display:flex;gap:6px;font-size:10.5px;line-height:1.5;padding:3px 0;border-bottom:1px solid #eee;color:#333}
+.dt-row:last-child{border-bottom:none}
+.dt-label{min-width:70px;flex-shrink:0;font-weight:500;color:#666}
+.tag-must{font-size:8px;background:#fee;color:#c00;padding:0 4px;border-radius:3px;font-weight:500;vertical-align:middle}
+.tag-opt{font-size:8px;background:#f0f0f0;color:#666;padding:0 4px;border-radius:3px;font-weight:500;vertical-align:middle}
+.sub-chain{border:1px solid #ddd;border-radius:8px;background:#f8f8f8;padding:10px 14px;margin-top:6px;text-align:left;width:480px}
+.sub-step{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid #eee}
+.sub-step:last-child{border-bottom:none}
+.ss-num{width:20px;height:20px;min-width:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0}
+.ss-1{background:#EEEDFE;color:#3C3489}
+.ss-2{background:#FFF3E0;color:#E65100}
+.ss-3{background:#F3E5F5;color:#6A1B9A}
+.ss-4{background:#E8F5E9;color:#2E7D32}
+.ss-5{background:#FCE4EC;color:#C2185B}
+.ss-6{background:#EFEBE9;color:#5D4037}
+.ss-r{background:#E6F1FB;color:#185FA5}
+.ss-f{background:#FDEAEA;color:#C62828}
+.ss-q{background:#E3F2FD;color:#1565C0}
+.ss-body{flex:1}
+.ss-title{font-size:11px;font-weight:500;color:#333}
+.config-row{display:flex;gap:6px;margin-top:6px;width:480px}
+.config-chip{flex:1;border:1px solid #ddd;border-radius:6px;padding:6px 8px;text-align:center;background:#f8f8f8}
+.cc-label{font-size:9px;color:#666;letter-spacing:.3px}
+.cc-file{font-size:10px;font-family:"SF Mono",Monaco,Consolas,monospace;color:#333;margin-top:2px;font-weight:500}
+.cc-desc{font-size:9px;color:#666;margin-top:1px;line-height:1.3}
+.cc-blue{border-color:#185FA5}.cc-blue .cc-label{color:#185FA5}
+.cc-quick{border-color:#1565C0}.cc-quick .cc-label{color:#1565C0}
+.cc-full{border-color:#7B1FA2}.cc-full .cc-label{color:#7B1FA2}
+.trigger{border:1px solid #ddd;border-radius:6px;padding:6px 10px;width:480px;text-align:left;background:#f8f8f8;margin-top:4px;margin-bottom:4px}
+.trigger-title{font-size:9px;font-weight:500;color:#666;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.trigger-step{display:flex;gap:6px;align-items:flex-start;padding:3px 0;font-size:10px;color:#666;line-height:1.3}
+.trigger-step b{color:#333;font-weight:500}
+.tw{font-size:8px;font-weight:500;padding:1px 4px;border-radius:3px;flex-shrink:0;margin-top:1px;min-width:50px;text-align:center}
+.tw-cc{background:#EEEDFE;color:#3C3489}
+.tw-skill{background:transparent;border:1px solid #534AB7;color:#534AB7}
+.tw-human{background:#E1F5EE;color:#085041}
+.tw-auto{background:#e8e8e8;color:#666}
+.tw-check{background:#FFF9E6;color:#8B6914}
+.tw-fail{background:#FDEAEA;color:#C62828}
+.tw-opt{background:#f0f0f0;color:#666}
+.tw-quick{background:#E3F2FD;color:#1565C0}
+.tw-full{background:#F3E5F5;color:#7B1FA2}
+.skill-wrap{border:2px solid #534AB7;border-radius:10px;padding:12px 14px;margin-top:6px;width:480px;text-align:left;background:#fff;position:relative}
+.skill-wrap-label{position:absolute;top:-10px;left:14px;font-size:10px;font-weight:500;color:#534AB7;background:#fff;padding:0 6px;letter-spacing:.3px;font-family:"SF Mono",Monaco,Consolas,monospace}
+.quick-wrap{border:2px solid #1565C0;border-radius:10px;padding:12px 14px;margin-top:6px;width:auto;text-align:left;background:#fff;position:relative}
+.quick-wrap-label{position:absolute;top:-10px;left:14px;font-size:10px;font-weight:500;color:#1565C0;background:#fff;padding:0 6px;letter-spacing:.3px;font-family:"SF Mono",Monaco,Consolas,monospace}
+.full-wrap{border:2px solid #7B1FA2;border-radius:10px;padding:12px 14px;margin-top:6px;width:auto;text-align:left;background:#fff;position:relative}
+.full-wrap-label{position:absolute;top:-10px;left:14px;font-size:10px;font-weight:500;color:#7B1FA2;background:#fff;padding:0 6px;letter-spacing:.3px;font-family:"SF Mono",Monaco,Consolas,monospace}
+.master-wrap{border:3px solid #534AB7;border-radius:16px;padding:20px 16px;width:900px;position:relative;background:#fff;margin-top:8px}
+.master-wrap-label{position:absolute;top:-11px;left:20px;font-size:11px;font-weight:500;color:#534AB7;background:#fff;padding:0 8px;letter-spacing:.3px;font-family:"SF Mono",Monaco,Consolas,monospace}
+.decision-box{border:1px solid #ddd;border-radius:8px;background:#f0f0f0;padding:8px 12px;margin-top:6px;width:480px;text-align:left}
+.dec-title{font-size:10px;font-weight:500;color:#333;margin-bottom:4px}
+.dec-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:10px}
+.dec-icon{width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;flex-shrink:0}
+.dec-pass{background:#E8F5E9;color:#2E7D32}
+.dec-warn{background:#FFF9E6;color:#8B6914}
+.dec-fail{background:#FDEAEA;color:#C62828}
+.dec-label{color:#666}
+.dec-action{color:#333;font-weight:500}
+.dec-arrow{color:#999;margin-left:4px}
+.branch-row{display:flex;gap:12px;margin-top:8px;width:800px;justify-content:center}
+.branch-col{flex:1;max-width:380px;display:flex;flex-direction:column;align-items:center;gap:0}
+.branch-divider{width:1px;background:#ccc;margin:0 6px;min-height:60px;align-self:stretch}
+.fork-arrow{display:flex;justify-content:center;width:420px;margin-top:2px}
+.fork-line{position:relative;width:420px;height:24px}
+.fork-line svg{width:420px;height:24px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;padding:12px;border-radius:8px;background:#f8f8f8;margin-top:16px;width:480px;font-size:10px;color:#666}
+.legend-item{display:flex;align-items:center;gap:5px}
+.legend-dot{width:10px;height:10px;border-radius:3px;border:1px solid}
+.version-tag{font-size:10px;font-weight:500;color:#534AB7;background:#fff;border:1px solid #534AB7;padding:4px 8px;border-radius:4px;margin-bottom:8px}
+.merge-arrow{display:flex;justify-content:center;width:420px;margin-top:4px}
+.merge-line svg{width:420px;height:24px}
+
+@media(prefers-color-scheme:dark){
+.nd-start{background:#26215C;border-color:#7F77DD;color:#CECBF6}.nd-start .nd-fmt{background:#3C3489;color:#CECBF6}
+.nd-human{background:#04342C;border-color:#5DCAA5;color:#9FE1CB}.nd-human .nd-fmt{background:#085041;color:#9FE1CB}.nd-human::before{border-color:#5DCAA5}
+.nd-out{background:#4A1B0C;border-color:#F0997B;color:#F5C4B3}.nd-out .nd-fmt{background:#712B13;color:#F5C4B3}
+.nd-check{background:#3D3200;border-color:#FFB300;color:#FFE082}.nd-check .nd-fmt{background:#8B6914;color:#FFE082}
+.nd-quick{background:#042347;border-color:#2196F3;color:#90CAF9}.nd-quick .nd-fmt{background:#0D47A1;color:#90CAF9}
+.nd-full{background:#1A0533;border-color:#CE93D8;color:#E1BEE7}.nd-full .nd-fmt{background:#4A148C;color:#E1BEE7}
+.nd-kb{background:#042C53;border-color:#85B7EB;color:#B5D4F4}.nd-kb .nd-sub{color:#85B7EB}
+.nd-fail{background:#4A1B0C;border-color:#EF9A9A;color:#FFCDD2}.nd-fail .nd-fmt{background:#8B0000;color:#FFCDD2}
+.human-tag{color:#5DCAA5;background:#04342C;border-color:#5DCAA5}
+.auto-tag{color:#AFA9EC;background:#26215C;border-color:#7F77DD}
+.check-tag{color:#FFE082;background:#3D3200;border-color:#FFB300}
+.fail-tag{color:#EF9A9A;background:#4A1B0C;border-color:#C62828}
+.quick-tag{color:#90CAF9;background:#042347;border-color:#2196F3}
+.full-tag{color:#E1BEE7;background:#1A0533;border-color:#CE93D8}
+.tag-must{background:#501313;color:#F09595}
+.ss-1{background:#26215C;color:#CECBF6}
+.ss-2{background:#4A3700;color:#FFB74D}
+.ss-3{background:#3D1466;color:#CE93D8}
+.ss-4{background:#1B5E20;color:#A5D6A7}
+.ss-5{background:#6A1B4D;color:#F48FB1}
+.ss-6{background:#3E2723;color:#BCAAA4}
+.ss-r{background:#042C53;color:#85B7EB}
+.ss-f{background:#4A1B0C;color:#EF9A9A}
+.ss-q{background:#042347;color:#90CAF9}
+.cc-blue{border-color:#85B7EB}.cc-blue .cc-label{color:#85B7EB}
+.cc-quick{border-color:#2196F3}.cc-quick .cc-label{color:#2196F3}
+.cc-full{border-color:#CE93D8}.cc-full .cc-label{color:#CE93D8}
+.tw-cc{background:#26215C;color:#CECBF6}
+.tw-skill{border-color:#7F77DD;color:#AFA9EC}
+.tw-human{background:#04342C;color:#9FE1CB}
+.tw-auto{background:#3E2723;color:#BCAAA4}
+.tw-check{background:#3D3200;color:#FFE082}
+.tw-fail{background:#4A1B0C;color:#EF9A9A}
+.tw-opt{background:#3E2723;color:#BCAAA4}
+.tw-quick{background:#042347;color:#90CAF9}
+.tw-full{background:#1A0533;color:#E1BEE7}
+.skill-wrap{border-color:#7F77DD}.skill-wrap-label{color:#AFA9EC;background:#1a1a1a}
+.quick-wrap{border-color:#2196F3}.quick-wrap-label{color:#90CAF9;background:#1a1a1a}
+.full-wrap{border-color:#CE93D8}.full-wrap-label{color:#E1BEE7;background:#1a1a1a}
+.master-wrap{border-color:#7F77DD}.master-wrap-label{color:#AFA9EC;background:#1a1a1a}
+.version-tag{border-color:#7F77DD;color:#AFA9EC}
+.dec-pass{background:#1B5E20;color:#A5D6A7}
+.dec-warn{background:#3D3200;color:#FFE082}
+.dec-fail{background:#4A1B0C;color:#EF9A9A}
+}
+</style>
+
+<div class="flow">
+
+<!-- VERSION & CONFIG -->
+<div class="version-tag">rana v0.4.1</div>
+<div class="config-row">
+<div class="config-chip cc-blue"><div class="cc-label">Skill 定义</div><div class="cc-file">SKILL.md</div><div class="cc-desc">路由 + 共享启动流程（~242行）</div></div>
+<div class="config-chip cc-quick"><div class="cc-label">Quick Mode</div><div class="cc-file">workflow-quick-mode-guideline.md</div><div class="cc-desc">4步流程 + 四维度框架 + 边界场景</div></div>
+<div class="config-chip cc-full"><div class="cc-label">Full Mode</div><div class="cc-file">workflow-full-mode-guideline.md</div><div class="cc-desc">3阶段串联 + 质量验证 + 多功能处理</div></div>
+</div>
+<div class="config-row">
+<div class="config-chip cc-blue"><div class="cc-label">协作规范</div><div class="cc-file">collaboration-protocol.md</div><div class="cc-desc">通用协作流程 + 四段式消息 + 5步批判反驳</div></div>
+<div class="config-chip cc-blue"><div class="cc-label">验证器</div><div class="cc-file">quality-validator.py</div><div class="cc-desc">6维度程序化质检（仅 Full Mode）</div></div>
+</div>
+<div class="arrow"></div>
+
+<!-- MASTER SKILL WRAPPER -->
+<div class="master-wrap">
+<div class="master-wrap-label">rana/SKILL.md — 双模式路由 + 共享启动流程</div>
+
+<div style="display:flex;flex-direction:column;align-items:center;gap:0;padding:4px 0">
+
+<!-- ===== STAGE 0: SHARED BOOTSTRAP ===== -->
+<div class="phase-label">共享启动流程 · SKILL.md 内联</div>
+
+<div class="nd nd-start">
+<div class="nd-title">设计师输入</div>
+<div class="nd-sub">PRD 文本 / PDF / Word / PNG 截图 / Markdown</div>
+<div class="nd-fmt">自然语言 prompt + 文件路径</div>
+</div>
+
+<div class="arrow"></div>
+
+<div class="nd nd-auto" style="width:320px">
+<div class="nd-title">启动自检 + Stage 0 文件预处理</div>
+<div class="nd-sub">blockStreaming 配置检查 → 文件类型检测 → 可配置解析器 → fallback</div>
+<div class="nd-fmt">输出: _temp/{filename}/auto/{filename}.md</div>
+</div>
+
+<div class="arrow"></div>
+
+<!-- ===== MODE ROUTING ===== -->
+<div class="phase-label">模式判定 · 三级路由</div>
+
+<div class="decision-box" style="width:480px">
+<div class="dec-title">模式选择逻辑</div>
+<div class="dec-row"><div class="dec-icon dec-quick" style="background:#E3F2FD;color:#1565C0">1</div><div class="dec-label">指令意图优先</div><div class="dec-arrow">→</div><div class="dec-action">含「快速/过一下/找漏洞」→ Quick | 含「完整输出/深度拆解」→ Full</div></div>
+<div class="dec-row"><div class="dec-icon" style="background:#f8f8f8;color:#666">2</div><div class="dec-label">静默文件判定</div><div class="dec-arrow">→</div><div class="dec-action">BUG修复/简单表单 → Quick | 核心链路重构/新业务线 → Full</div></div>
+<div class="dec-row"><div class="dec-icon dec-quick" style="background:#E3F2FD;color:#1565C0">3</div><div class="dec-label">防呆兜底</div><div class="dec-arrow">→</div><div class="dec-action">无法确认 → 默认 Quick + 升级提示</div></div>
+</div>
+
+<div class="trigger">
+<div class="trigger-title">渐进式披露 · SKILL.md 只做路由</div>
+<div class="trigger-step"><span class="tw tw-quick">Quick</span> → 加载 <b>references/workflow-quick-mode-guideline.md</b></div>
+<div class="trigger-step"><span class="tw tw-full">Full</span> → 加载 <b>references/workflow-full-mode-guideline.md</b></div>
+<div class="trigger-step"><span class="tw tw-skill">共享</span>协作规范加载 <b>references/collaboration-protocol.md</b>（Quick/Full 通用）</div>
+</div>
+
+<div class="arrow"></div>
+
+<!-- ===== QUICK MODE ===== -->
+<div class="phase-label" style="color:#1565C0">Quick Mode · workflow-quick-mode-guideline.md</div>
+
+<div class="quick-wrap">
+<div class="quick-wrap-label">QUICK MODE — 快速了解需求、辩证理解、挖掘需求</div>
+
+<div class="nd nd-quick">
+<div class="nd-title">Step 1：快速分析（四维度）</div>
+<div class="nd-sub">问题 → 目标 → 供给 → 指标<br>强制约束：100%复制模板、禁止纯摘要、必须推断、暴露数据缺失</div>
+<div class="nd-fmt">使用模板: analysis-template-quick.md</div>
+</div>
+
+<div class="trigger" style="border-color:#1565C0">
+<div class="trigger-title">⚠️ 暂停输出，等待用户回复</div>
+<div class="trigger-step"><span class="tw tw-quick">强制</span>输出完四表格后必须停止！抛出1-2个探讨性问题</div>
+<div class="trigger-step"><span class="tw tw-fail">禁止</span>第一轮对话直接输出提问清单</div>
+</div>
+
+<div class="arrow"></div>
+
+<div class="nd nd-quick nd-human" style="background:#E1F5EE;border-color:#0F6E56;color:#085041">
+<div class="nd-title">Step 2：深度分析与讨论</div>
+<div class="nd-sub">多轮对话 · 人在环中<br>主动抛出探讨性问题 → 用户反驳 → 5步批判反驳流程</div>
+<div class="nd-fmt">协作规范: collaboration-protocol.md</div>
+</div>
+
+<div class="arrow"></div>
+
+<div class="nd nd-quick">
+<div class="nd-title">Step 3：评审澄清提问清单</div>
+<div class="nd-sub">≥3 个犀利提问，每个含：提问内容 + 追问理由 + 关联维度</div>
+<div class="nd-fmt">输出: quick-analysis.md（澄清提问清单章节）</div>
+</div>
+
+<div class="arrow"></div>
+
+<div class="nd nd-quick nd-out" style="background:#FAECE7;border-color:#993C1D;color:#712B13">
+<div class="nd-title">Step 4：升级提示</div>
+<div class="nd-sub">"若需完整 Full Mode 分析说明书，请回复「执行 Full Mode」"</div>
+<div class="nd-fmt">输出: quick-analysis.md + change-log.md</div>
+</div>
+
+</div><!-- end quick-wrap -->
+
+<div class="arrow"></div>
+
+<!-- ===== FULL MODE ===== -->
+<div class="phase-label" style="color:#7B1FA2">Full Mode · workflow-full-mode-guideline.md</div>
+
+<div class="full-wrap">
+<div class="full-wrap-label">FULL MODE — 完整分析说明书 · 三阶段渐进完善</div>
+
+<div class="sub-chain" style="border-color:#7B1FA2;background:#FAFAFA">
+<div class="dt-title" style="color:#7B1FA2">三阶段概览</div>
+<div class="sub-step"><div class="ss-num ss-3">S1</div><div class="ss-body"><div class="ss-title">诊断层 · 二~四章<br>找病因 + 按需协作 · <b>stage-1-diagnosis.md</b></div></div></div>
+<div class="sub-step"><div class="ss-num ss-3">S2</div><div class="ss-body"><div class="ss-title">方案层 · 五~八章<br>开药方 + 按需协作 · <b>stage-2-solution.md</b></div></div></div>
+<div class="sub-step"><div class="ss-num ss-3">S3</div><div class="ss-body"><div class="ss-title">提炼层 · 一章+总结<br>倒推提炼 + 按需协作 · <b>stage-3-refine.md</b></div></div></div>
+</div>
+
+<div class="arrow"></div>
+
+<div class="skill-wrap" style="border-color:#7B1FA2">
+<div class="skill-wrap-label" style="color:#7B1FA2;background:#FAFAFA">每个 Stage 结束：四段式独立消息</div>
+<div class="trigger-step"><span class="tw tw-full">消息块1</span>引导语（各阶段自定义）</div>
+<div class="trigger-step"><span class="tw tw-full">消息块2</span>逐字全文输出本阶段章节（不省略、不截断）</div>
+<div class="trigger-step"><span class="tw tw-full">消息块3</span>P0 缺口清单 + 待确认推断项 → 进入协作确认</div>
+<div class="trigger-step"><span class="tw tw-full">消息块4</span>确认提示语（各阶段自定义）</div>
+<div class="trigger-step"><span class="tw tw-skill">定义</span>通用结构见 <b>collaboration-protocol.md §四段式独立消息通用结构</b></div>
+</div>
+
+<div class="arrow"></div>
+
+<div class="nd nd-full nd-human" style="background:#E1F5EE;border-color:#0F6E56;color:#085041">
+<div class="nd-title">协作确认环节（每阶段结束）</div>
+<div class="nd-sub">无 P0 缺口 → 确认推断项和存疑点 → 进入下一阶段<br>有 P0 缺口 → 多轮协作讨论 → 补完后确认</div>
+<div class="nd-fmt">通用流程: collaboration-protocol.md §通用协作讨论环节流程</div>
+</div>
+
+<div class="arrow"></div>
+
+<div class="nd nd-full nd-check" style="background:#FFF9E6;border-color:#D4A500;color:#8B6914">
+<div class="nd-title">质量验证（仅 Full Mode）</div>
+<div class="nd-sub">Stage 3 完成后运行 quality-validator.py<br>文件结构 / 来源追溯 / P0小节 / 章节完整 / 模糊表述</div>
+<div class="nd-fmt">python3 rana/scripts/quality-validator.py <分析目录> [--score]</div>
+</div>
+
+<div class="arrow"></div>
+
+<div class="nd nd-full nd-out" style="background:#FAECE7;border-color:#993C1D;color:#712B13">
+<div class="nd-title">Full Mode 输出</div>
+<div class="nd-sub">final-analysis.md + change-log.md + quality-report.md</div>
+<div class="nd-fmt">8章节+总结 · 使用 analysis-template-full.md</div>
+</div>
+
+</div><!-- end full-wrap -->
+
+<!-- ===== END ===== -->
+<div class="phase-label">完成</div>
+
+<div class="nd nd-start">
+<div class="nd-title">✅ 分析完成</div>
+<div class="nd-sub">可进入设计分析阶段</div>
+</div>
+
+</div>
+</div><!-- end master-wrap -->
+
+<!-- LEGEND -->
+<div class="legend">
+<div class="legend-item"><div class="legend-dot" style="background:#EEEDFE;border-color:#534AB7"></div>输入/启动</div>
+<div class="legend-item"><div class="legend-dot" style="background:#E3F2FD;border-color:#1565C0"></div>Quick Mode</div>
+<div class="legend-item"><div class="legend-dot" style="background:#F3E5F5;border-color:#7B1FA2"></div>Full Mode</div>
+<div class="legend-item"><div class="legend-dot" style="background:#E1F5EE;border-color:#0F6E56"></div>人工介入/协作</div>
+<div class="legend-item"><div class="legend-dot" style="background:#FAECE7;border-color:#993C1D"></div>输出物</div>
+<div class="legend-item"><div class="legend-dot" style="background:#FFF9E6;border-color:#D4A500"></div>质量门禁</div>
+<div class="legend-item"><div class="legend-dot" style="background:#E6F1FB;border-color:#185FA5"></div>引用文件</div>
+<div class="legend-item"><div class="legend-dot" style="background:#f8f8f8;border-color:#ccc"></div>自动节点</div>
+<div class="legend-item"><div class="legend-dot" style="border:2px solid #534AB7;background:#fff"></div>Skill流程框</div>
+<div class="legend-item"><div class="legend-dot" style="background:#FDEAEA;border-color:#C62828"></div>禁止/失败</div>
+</div>
+
+</div>
