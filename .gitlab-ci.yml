@@ -1,0 +1,16 @@
+sync-wiki:
+  stage: deploy
+  image: alpine:latest
+  rules:
+    - changes:
+        - wiki/**
+  before_script:
+    - apk add --no-cache git openssh-client rsync
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - ssh-keyscan gitlab.vmic.xyz >> ~/.ssh/known_hosts 2>/dev/null
+    - git config --global user.email "wiki-bot@gitlab.vmic.xyz"
+    - git config --global user.name "Wiki Bot"
+  script:
+    - bash scripts/sync-wiki.sh wiki
