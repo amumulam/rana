@@ -2,7 +2,9 @@
 
 中文 | [English](./README.md)
 
-一个可部署到 **OpenClaw、OpenCode、Claude Code** 等 CLI agent 平台的 **agent skill**，帮助 UX 交互设计师将 PM 的 PRD/需求文档转化为结构化的需求分析交付物。
+一个可安装到 **OpenClaw、OpenCode、Claude Code** 等 CLI agent 平台的 **agent skill**——为 agent 加装需求分析能力。帮助 UX 交互设计师将 PM 的 PRD 通过逐层质疑与协作对话，转化为结构化的需求分析交付物。
+
+**仓库：** [GitHub](https://github.com/amumulam/rana) · [GitLab](https://gitlab.vmic.xyz/ued-ai-lab/rana) · [Wiki](https://gitlab.vmic.xyz/ued-ai-lab/rana/-/wikis/home)
 
 ## 功能
 

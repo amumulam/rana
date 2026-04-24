@@ -3,12 +3,23 @@
 This project is an **OpenCode Skill** that helps UX designers turn PM PRDs into structured requirement analysis documents. The core deliverable is `rana/` — a skill directory installable into `~/.agents/skills/`.
 
 **GitHub:** https://github.com/amumulam/rana
+**GitLab:** https://gitlab.vmic.xyz/ued-ai-lab/rana
+**Wiki:** https://gitlab.vmic.xyz/ued-ai-lab/rana/-/wikis/home — 面向 UX 设计师的 Mattermost 使用指南
+
+---
+
+## Remote Repositories
+
+| Remote | URL | Purpose |
+|--------|-----|---------|
+| `origin` | `https://github.com/amumulam/rana.git` | Public mirror |
+| `gitlab` | `git@gitlab.vmic.xyz:ued-ai-lab/rana.git` | Internal (primary) |
+
+Push to both: `git push origin main && git push gitlab main`
 
 ---
 
 ## Deployment Environments
-
-This skill is deployed in **two environments**:
 
 | Environment | Platform | Skill install path | Notes |
 |-------------|----------|--------------------|-------|
@@ -35,7 +46,7 @@ This skill is deployed in **two environments**:
 
 ## Skill Creation Guideline
 
-**本项目遵循 `./skill-creat-guideline/` 目录下的指南进行 skill 开发。**
+**本项目遵循 `skill-creat-guideline/` 目录下的指南进行 skill 开发。**
 
 关键规范：
 
@@ -119,16 +130,18 @@ rana/  (repo root, local path: requirements-analysis/)
 │   │   ├── workflow-quick-mode-guideline.md   # Quick Mode 全流程 + 四维度框架 + 边界场景
 │   │   ├── workflow-full-mode-guideline.md    # Full Mode 串联流程 + 质量验证 + 多功能处理
 │   │   ├── collaboration-protocol.md          # 批判反驳与协作对话规范（Quick/Full 通用）
-│   │   ├── p0-gates.md               # P0 缺口规则（v0.4.0）
-│   │   ├── stage-1-diagnosis.md      # 诊断层详细流程（v0.4.0）
-│   │   ├── stage-2-solution.md       # 方案层详细流程（v0.4.0）
-│   │   ├── stage-3-refine.md         # 提炼层详细流程（v0.4.0）
+│   │   ├── p0-gates.md               # P0 缺口规则
+│   │   ├── stage-1-diagnosis.md      # 诊断层详细流程
+│   │   ├── stage-2-solution.md       # 方案层详细流程
+│   │   ├── stage-3-refine.md         # 提炼层详细流程
 │   │   ├── analysis-methods.md       # HMW/MVP/五问法/X-Y Problem
 │   │   └── quality-validator.md      # Validator 行为详细说明
 │   ├── assets/
-│   │   ├── analysis-template-full.md  # Full Mode 输出模板（8章+总结，v0.4.3）
-│   │   └── analysis-template-quick.md # Quick Mode 快速分析模板（四维度+提问清单，v0.4.3）
+│   │   ├── analysis-template-full.md  # Full Mode 输出模板（8章+总结）
+│   │   └── analysis-template-quick.md # Quick Mode 快速分析模板
 │   └── config.yaml                    # file_parser 配置
+├── scripts/
+│   └── sync-wiki.sh                 # 手动同步 wiki/ 到 GitLab Wiki（CI 不可用时的备用方案）
 ├── tests/
 │   ├── unit/                        # pytest unit tests for validator functions
 │   ├── e2e/                         # E2E tests via subprocess CLI calls
@@ -138,11 +151,16 @@ rana/  (repo root, local path: requirements-analysis/)
 │       ├── test-b-edge/             # Minimal input → FAIL (missing field)
 │       ├── test-c-multi-feature/    # Multi-feature PRD → PASS
 │       ├── test-d-conflict/         # Conflict in change-log → PASS
-│       └── test-e-traceability-fail/# Low traceability rate → FAIL
-├── docs/superpowers/
-│   ├── specs/                       # Design documents (brainstorming output)
-│   └── plans/                       # Implementation plans (writing-plans output)
-├── ref/                             # Reference outputs (输出参考.md)
+│       ├── test-e-traceability-fail/# Low traceability rate → FAIL
+│       ├── test-f-screenshot-input/  # Screenshot input → PASS
+│       └── file-input/              # Integration test fixtures (PDF/XLSX)
+├── wiki/                            # GitLab Wiki 源文件（push 后自动同步）
+│   ├── Home.md                      # Wiki 首页
+│   └── assets/                      # Wiki 图片资源
+├── workflow-diagram/                 # 架构图
+│   ├── rana-workflow-v0.4.html       # v0.4.1 架构图（当前）
+│   └── rana-workflow-v0.3.html       # v0.3 架构图（旧版）
+├── .gitlab-ci.yml                   # CI/CD — auto-release + wiki sync
 └── pyproject.toml                   # pytest + ruff config
 ```
 
@@ -160,10 +178,20 @@ rana/  (repo root, local path: requirements-analysis/)
 │       └── quality-report.md              # AI自评（简化）
 ```
 
-**Install copy:** After every change to `rana/`, sync:
+---
+
+## Wiki Sync
+
+项目仓库中的 `wiki/` 目录会通过 CI/CD 自动同步到 GitLab Wiki。
+
+**手动同步**（CI 不可用时）：
 ```bash
-cp -r rana/. ~/.agents/skills/rana/
+bash scripts/sync-wiki.sh wiki
 ```
+
+**自动同步**：修改 `wiki/` 目录并 push 到 `gitlab/main` 后，`.gitlab-ci.yml` 中的 `sync-wiki` job 会自动执行同步。
+
+需要 GitLab CI Variable `SSH_PRIVATE_KEY` 配置（Settings → CI/CD → Variables）。
 
 ---
 
@@ -343,9 +371,30 @@ P0 sections: 1.1 需求概述, 1.2 需求来源, 2.1 核心用户画像, 2.3 场
 4. Sync install copy: `cp -r rana/. ~/.agents/skills/rana/`
 5. Commit source + tests together
 
-Design docs → `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
-Implementation plans → `docs/superpowers/plans/YYYY-MM-DD-<topic>.md`
-Version roadmap → `docs/roadmap.md`
+**规划文档**不在仓库中维护。版本规划使用 GitLab Milestones + Issues：
+- **Roadmap**: https://gitlab.vmic.xyz/ued-ai-lab/rana/-/milestones
+- **Issues**: https://gitlab.vmic.xyz/ued-ai-lab/rana/-/issues
+- 本地 `docs/` 目录为个人规划文档，不纳入 git 追踪（已在 `.gitignore` 中）
+
+---
+
+## Version Management & Release Workflow
+
+### Commit message convention
+使用 **Conventional Commits** 规范：`feat:`, `fix:`, `refactor:`, `docs:`, `test:` 前缀。
+
+### Release 流程（自动化）
+1. 功能开发在 feature branch + worktree 中完成
+2. 合并到 main 后，创建版本 tag：`git tag v0.x.x && git push gitlab v0.x.x`
+3. GitLab CI 检测 tag push 后自动执行 `auto-release` job：
+   - 打包 `rana/` 目录为 `rana-v0.x.x.zip`
+   - 上传到 Generic Package Registry
+   - 创建 GitLab Release 并关联 asset
+
+### Roadmap 管理
+- **GitLab Milestones** → 每个版本（v0.5.0, v0.6.0...）
+- **GitLab Issues** → 每个功能点，标 `feat:`/`fix:` 前缀，关联对应 Milestone
+- 仓库内不再维护 `docs/roadmap.md`（已移除 git 追踪）
 
 ---
 

@@ -2,7 +2,9 @@
 
 [中文](./README.zh-CN.md) | English
 
-A **agent skill** deployable to OpenClaw, OpenCode, Claude Code, and other CLI agent platforms. It helps UX designers turn PM PRDs into structured requirement analysis documents.
+An **agent skill** installable into OpenClaw, OpenCode, Claude Code, and other CLI agent platforms — adding requirement analysis capability to your agent. It helps UX designers turn PM PRDs into structured deliverables through step-by-step critique and collaborative dialogue.
+
+**Repos:** [GitHub](https://github.com/amumulam/rana) · [GitLab](https://gitlab.vmic.xyz/ued-ai-lab/rana) · [Wiki](https://gitlab.vmic.xyz/ued-ai-lab/rana/-/wikis/home)
 
 ## What It Does
 
