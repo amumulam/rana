@@ -15,7 +15,7 @@ This skill is deployed in **two environments**:
 | Local (macOS) | BlueCode / OpenCode | `~/.agents/skills/rana/` | Dev machine |
 | Server | OpenClaw | `~/.openclaw/skills/rana/` | Production environment used for real online tests |
 
-**Important**: When reviewing online test outputs (e.g. `tests/online-test/*/out/quality-report.md`), the validator path `~/.openclaw/skills/rana/scripts/quality-validator.py` is the **real, correct path** on the server. Do NOT flag this as an error or "forged result".
+**Important**: When reviewing online test outputs, the validator path `~/.openclaw/skills/rana/scripts/quality-validator.py` is the **real, correct path** on the server. Do NOT flag this as an error or "forged result".
 
 ---
 
@@ -97,7 +97,7 @@ PDF 文字/表格/图片元数据，生成 Stage 1 格式的 `input-structured.m
 python3 -m pytest tests/integration/ -v
 ```
 
-如需重新生成 fixture 输出，删除对应 `test-runs/file-input/outputs/` 子目录后重跑测试即可。
+如需重新生成 fixture 输出，删除对应 `tests/fixtures/file-input/outputs/` 子目录后重跑测试即可。
 
 ### SKILL.md accuracy note
 
@@ -112,35 +112,33 @@ This is accurate **only** when the skill is used via a web UI that supports file
 ```
 rana/  (repo root, local path: requirements-analysis/)
 ├── rana/         # Skill source (canonical copy)
-│   ├── SKILL.md                     # Skill definition — dual-mode workflow, 3-stage specs (~300 lines)
+│   ├── SKILL.md                     # Skill definition — dual-mode routing + shared bootstrap (~240 lines, v0.4.1)
 │   ├── scripts/
 │   │   └── quality-validator.py     # CLI quality gate checker (v0.4.0, 3 required files + P0 sections)
 │   ├── references/
-│   │   ├── collaboration-protocol.md  # 批判反驳与协作对话规范（Quick/Full 通用）
+│   │   ├── workflow-quick-mode-guideline.md   # Quick Mode 全流程 + 四维度框架 + 边界场景
+│   │   ├── workflow-full-mode-guideline.md    # Full Mode 串联流程 + 质量验证 + 多功能处理
+│   │   ├── collaboration-protocol.md          # 批判反驳与协作对话规范（Quick/Full 通用）
 │   │   ├── p0-gates.md               # P0 缺口规则（v0.4.0）
 │   │   ├── stage-1-diagnosis.md      # 诊断层详细流程（v0.4.0）
 │   │   ├── stage-2-solution.md       # 方案层详细流程（v0.4.0）
 │   │   ├── stage-3-refine.md         # 提炼层详细流程（v0.4.0）
 │   │   ├── analysis-methods.md       # HMW/MVP/五问法/X-Y Problem
-│   │   ├── _archived-stage-1-guideline.md  # 归档旧四阶段版
-│   │   ├── _archived-stage-2-guideline.md  # 归档旧四阶段版
-│   │   ├── _archived-stage-3-guideline.md  # 归档旧四阶段版
-│   │   ├── analysis-checklist.md     # 33-item checklist (旧版,待评估)
-│   │   ├── traceability-guide.md     # Source annotation conventions (旧版,待评估)
-│   │   └── quality-gates.md          # 5-dimension quality gate standards (旧版,待评估)
+│   │   └── quality-validator.md      # Validator 行为详细说明
 │   ├── assets/
-│   │   ├── analysis-template-full.md  # Full Mode 输出模板（8章+总结，v0.4.0）
-│   │   └── analysis-template-quick.md # Quick Mode 快速分析模板（四维度+提问清单，v0.4.0）
+│   │   ├── analysis-template-full.md  # Full Mode 输出模板（8章+总结，v0.4.3）
+│   │   └── analysis-template-quick.md # Quick Mode 快速分析模板（四维度+提问清单，v0.4.3）
 │   └── config.yaml                    # file_parser 配置
 ├── tests/
 │   ├── unit/                        # pytest unit tests for validator functions
-│   └── e2e/                         # E2E tests via subprocess CLI calls
-├── test-runs/                       # E2E test fixtures (one dir per scenario)
-│   ├── test-a-normal/               # Normal case → PASS
-│   ├── test-b-edge/                 # Minimal input → FAIL (missing field)
-│   ├── test-c-multi-feature/        # Multi-feature PRD → PASS
-│   ├── test-d-conflict/             # Conflict in change-log → PASS
-│   └── test-e-traceability-fail/    # Low traceability rate → FAIL
+│   ├── e2e/                         # E2E tests via subprocess CLI calls
+│   ├── integration/                 # Integration tests with pdfplumber
+│   └── fixtures/                    # Test fixtures (validator input/output)
+│       ├── test-a-normal/           # Normal case → PASS
+│       ├── test-b-edge/             # Minimal input → FAIL (missing field)
+│       ├── test-c-multi-feature/    # Multi-feature PRD → PASS
+│       ├── test-d-conflict/         # Conflict in change-log → PASS
+│       └── test-e-traceability-fail/# Low traceability rate → FAIL
 ├── docs/superpowers/
 │   ├── specs/                       # Design documents (brainstorming output)
 │   └── plans/                       # Implementation plans (writing-plans output)
@@ -205,13 +203,13 @@ python3 -m pytest tests/e2e/ -v
 ```bash
 python3 -m pytest tests/integration/ -v
 ```
-集成测试会自动用 pdfplumber 提取 `test-runs/file-input/fixtures/` 中的 PDF，
-生成 `test-runs/file-input/outputs/` 下的输出文件，然后验证其结构。
+集成测试会自动用 pdfplumber 提取 `tests/fixtures/file-input/fixtures/` 中的 PDF，
+生成 `tests/fixtures/file-input/outputs/` 下的输出文件，然后验证其结构。
 fixture 文件不存在时自动跳过对应场景，不视为失败。
 
 ### Run the validator manually
 ```bash
-python3 rana/scripts/quality-validator.py test-runs/test-a-normal
+python3 rana/scripts/quality-validator.py tests/fixtures/test-a-normal
 ```
 
 ### Lint (ruff must be installed: `pip3 install ruff`)
@@ -340,7 +338,7 @@ P0 sections: 1.1 需求概述, 1.2 需求来源, 2.1 核心用户画像, 2.3 场
 ## Development Workflow
 
 1. Edit `rana/` source
-2. Run `python3 -m pytest tests/ -v` — must stay 70/70 green
+2. Run `python3 -m pytest tests/ -v` — must stay green
 3. Run validator manually on relevant fixture to confirm behavior
 4. Sync install copy: `cp -r rana/. ~/.agents/skills/rana/`
 5. Commit source + tests together
@@ -351,18 +349,19 @@ Version roadmap → `docs/roadmap.md`
 
 ---
 
-## SKILL.md Key Locations (v0.4.0)
+## SKILL.md Key Locations (v0.4.1)
 
 | Section | Lines | Notes |
 |---------|-------|-------|
-| 互动风格 + 工作原则 + 批判反驳概要 | ~30-90 | 新增 v0.4.0：人设、C1-C7 触发条件 |
-| 双模式概览（mermaid） | ~95-145 | Quick/Full 流程图 + 模式选择逻辑 |
-| 输出目录约定 | ~148-165 | `_temp/` 和 `<需求名称>/<YYYY-MM-DD>/` 目录结构 |
-| Quick Mode 流程 | ~195-215 | 四步：共识单→讨论→提问清单→升级提示 |
-| Full Mode 三阶段概览 | ~218-240 | 诊断层→方案层→提炼层，引用 references |
-| 注意事项 | ~245-250 | Quick Mode 不适用 P0 缺口规则 |
+| 互动风格 + 工作原则 + 批判反驳概要 | ~30-75 | 人设、C1-C7 触发条件 |
+| 双模式概览（mermaid） | ~77-125 | Quick/Full 流程图 + 模式选择逻辑 |
+| 输出目录约定 | ~127-147 | `_temp/` 和 `<需求名称>/<YYYY-MM-DD>/` 目录结构 |
+| Quick Mode | ~211-218 | 路由行 → workflow-quick-mode-guideline.md |
+| Full Mode | ~217-222 | 路由行 → workflow-full-mode-guideline.md |
+| Gotchas | ~223-230 | 知识库、PDF、多次分析 |
+| 引用文件 | ~231-241 | 所有 references 和 assets 清单 |
 
-**注意**：SKILL.md v0.4.0 为 Clean Break 重写（~300行），旧 v0.3.3 的章节模板、四阶段推进规则等已移至 references/ 或归档。
+**注意**：SKILL.md v0.4.1 为精简路由版（~240行），Full Mode 内联流程已移至 workflow-full-mode-guideline.md，Quick Mode 内联流程已移至 workflow-quick-mode-guideline.md。
 
 ---
 

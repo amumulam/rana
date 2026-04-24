@@ -4,7 +4,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 VALIDATOR = REPO_ROOT / "rana" / "scripts" / "quality-validator.py"
-TEST_RUNS = REPO_ROOT / "test-runs"
+TEST_RUNS = Path(__file__).parent.parent / "fixtures"
 
 # v0.4.0 validator changes:
 # - Required files: final-analysis.md, change-log.md, quality-report.md (3, not 5)

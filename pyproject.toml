@@ -15,4 +15,4 @@ addopts = "-v --tb=short"
 line-length = 100
 target-version = "py39"
 select = ["E", "F", "W", "I"]
-exclude = ["test-runs/", ".ruff_cache/", "tests/"]
+exclude = ["tests/fixtures/", ".ruff_cache/"]
