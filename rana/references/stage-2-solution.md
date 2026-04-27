@@ -34,6 +34,12 @@
 - 哪些是保障核心价值跑通的最少功能集？
 - 哪些看似美好但耗费开发资源的边缘场景应当被果断砍掉或延期？
 
+> 🔧 **分析方法**：填充 6.1 MVP 时，读取 `references/analysis-methods.md` §方法五（MVP 敏捷拆解法），按步骤执行：
+> - 定义核心价值与假设 → 列全量功能 → 按 Must/Should/Could 分层 → INVEST 切割 → MoSCoW 排优先级
+>
+> 填充 6.2 HMW 时，读取 `references/analysis-methods.md` §方法四（HMW 发散法），按 NN/g 标准执行：
+> - 锚定洞察 → 撰写 HMW 问题（5 大黄金规则）→ 独立发散 → 筛选 3-5 个优质 HMW
+
 **注意**：本阶段输出五~八章。八章节为 P2 可选。
 
 ---

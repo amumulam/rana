@@ -237,6 +237,6 @@ flowchart TD
 - `references/stage-3-refine.md` — 提炼层详细流程
 - `references/p0-gates.md` — P0 缺口规则
 - `references/collaboration-protocol.md` — 批判反驳与协作对话规范（Quick/Full 通用）
-- `references/analysis-methods.md` — 分析方法论（HMW/MVP/五问法/X-Y Problem）
+- `references/analysis-methods.md` — 分析方法论（五问法/X-Y Problem/场景还原法/HMW/MVP 敏捷拆解），在诊断推演和方案设计阶段按需调用
 - `assets/analysis-template-full.md` — Full Mode 输出模板（8章+总结）
 - `assets/analysis-template-quick.md` — Quick Mode 快速分析模板（四维度+提问清单）
