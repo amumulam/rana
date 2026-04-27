@@ -479,6 +479,15 @@ ruff check rana/scripts/          # Lint
 
 ---
 
+### gmr 踩坑记录
+
+1. **worktree 与 main 同文件冲突**：在 worktree commit 并 push 后，main 目录如有同文件未提交改动，`git pull` 会冲突。gmr 里的 `git stash -u` 只能解决 main 侧的两个 remote 同步冲突，但 main 与 worktree 之间的文件冲突要靠自律——**不要在 main 上修改 worktree 正在改的文件**。
+2. **glab mr create 的 --title**：commit message 含中文引号或特殊字符时，`--title` 解析可能异常，改用 `--fill` 让 glab 自动从 commits 生成为最稳。
+3. **glab squash flag**：`--squash` 是 `-s`，不是 `--squash` 或 `--squash-merge`。
+4. **glab mr merge 时机**：`glab mr merge` 必须在 main 目录下执行（不能在 worktree 目录下），否则 pull 后 worktree 的 HEAD 不会更新。
+
+---
+
 ## SKILL.md Key Locations (v0.4.1)
 
 | Section | Lines | Notes |
