@@ -416,14 +416,20 @@ gmr
 
 把 Work Item 状态改为 Done。零 ID 搬运，零同步脚本。
 
-**Done 时必须在 Work Item 下写 comment**，记录过程、结论和关联代码：
+**Done 时必须在 Work Item 下写 comment**，记录过程、结论和关联代码。
+
+comment 使用 HTML（Plane 不渲染 markdown），格式如下：
 
 ```
-### [动作标签] 标题
+<strong>[动作标签] 标题</strong>
 
-正文内容
+<strong>关联：</strong><a href="GitLab commit 链接">short_hash</a> commit message
 
-**关联：** [`commit_short_hash`](https://gitlab.vmic.xyz/ued-ai-lab/rana/-/commit/hash) commit message
+<strong>描述：</strong>正文内容
+
+<strong>变更内容：</strong>
+- item1
+- item2
 ```
 
 动作标签：
@@ -432,9 +438,10 @@ gmr
 - `[阻塞]` — 遇到阻碍需要讨论
 
 规则：
-- 最高标题等级为三级（`###`），禁止一级二级
+- `<strong>` 作标题，`<code>` 作行内代码，`<br>` 换行，`<a href>` 作链接
+- 不用 `<h1>` `<h2>` `<h3>` `<ul>` `<li>` 等标签（Plane 渲染异常）
 - commit 关联必须附带 GitLab commit 链接
-- 简洁不啰嗦，一个 comment 不超过 10 行
+- 简洁不啰嗦
 
 ---
 
