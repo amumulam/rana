@@ -414,7 +414,27 @@ gmr
 
 ### 第三阶段：状态更新（Plane.so）
 
-把 Work Item 拖到 Done。零 ID 搬运，零同步脚本。
+把 Work Item 状态改为 Done。零 ID 搬运，零同步脚本。
+
+**Done 时必须在 Work Item 下写 comment**，记录过程、结论和关联代码：
+
+```
+### [动作标签] 标题
+
+正文内容
+
+**关联：** [`commit_short_hash`](https://gitlab.vmic.xyz/ued-ai-lab/rana/-/commit/hash) commit message
+```
+
+动作标签：
+- `[完成]` — Done 时记录过程和结论
+- `[更新]` — 开发中的进展同步
+- `[阻塞]` — 遇到阻碍需要讨论
+
+规则：
+- 最高标题等级为三级（`###`），禁止一级二级
+- commit 关联必须附带 GitLab commit 链接
+- 简洁不啰嗦，一个 comment 不超过 10 行
 
 ---
 
