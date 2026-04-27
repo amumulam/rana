@@ -363,38 +363,119 @@ P0 sections: 1.1 需求概述, 1.2 需求来源, 2.1 核心用户画像, 2.3 场
 
 ---
 
-## Development Workflow
+## Development & Project Management Workflow
 
-1. Edit `rana/` source
-2. Run `python3 -m pytest tests/ -v` — must stay green
-3. Run validator manually on relevant fixture to confirm behavior
-4. Sync install copy: `cp -r rana/. ~/.agents/skills/rana/`
-5. Commit source + tests together
+### 核心原则
 
-**规划文档**不在仓库中维护。版本规划使用 GitLab Milestones + Issues：
-- **Roadmap**: https://gitlab.vmic.xyz/ued-ai-lab/rana/-/milestones
-- **Issues**: https://gitlab.vmic.xyz/ued-ai-lab/rana/-/issues
-- 本地 `docs/` 目录为个人规划文档，不纳入 git 追踪（已在 `.gitignore` 中）
+- **Plane 是唯一看板**：只在这里看"接下来做什么"，不维护 GitLab Issues/Milestones
+- **Worktree 是唯一开发环境**：多 feature 并行互不干扰，不用 stash 或来回 checkout
+- **Conventional Commits 是唯一记录**：靠语义化前缀自动生成 Changelog，不关联 Issue ID
+- **Tag 是唯一发令枪**：打 Tag 即发布，CI 自动打包 + Release
+- **双 remote 同步**：`origin` (GitHub 公开镜像) + `gitlab` (内网主力)
 
 ---
 
-## Version Management & Release Workflow
+### 第一阶段：规划（Plane.so）
 
-### Commit message convention
-使用 **Conventional Commits** 规范：`feat:`, `fix:`, `refactor:`, `docs:`, `test:` 前缀。
+1. 在 Plane UEDAILAB 项目（ID: `974c1f39-00b3-4305-9ee5-a5d3c7166294`）建 Work Item
+   - 标题用 Conventional Commits 格式：`feat: xxx` / `fix: xxx`
+   - 状态改为 In Progress
+   - 放入当前版本 Cycle
+2. 开始工作时看 Plane，确定做哪个卡片
 
-### Release 流程（自动化）
-1. 功能开发在 feature branch + worktree 中完成
-2. 合并到 main 后，创建版本 tag：`git tag v0.x.x && git push gitlab v0.x.x`
-3. GitLab CI 检测 tag push 后自动执行 `auto-release` job：
-   - 打包 `rana/` 目录为 `rana-v0.x.x.zip`
-   - 上传到 Generic Package Registry
-   - 创建 GitLab Release 并关联 asset
+**不在 GitLab 平面维护任何 Issue / Milestone / Board。**
 
-### Roadmap 管理
-- **GitLab Milestones** → 每个版本（v0.5.0, v0.6.0...）
-- **GitLab Issues** → 每个功能点，标 `feat:`/`fix:` 前缀，关联对应 Milestone
-- 仓库内不再维护 `docs/roadmap.md`（已移除 git 追踪）
+---
+
+### 第二阶段：开发（Local + Worktree）
+
+```bash
+# 1. 开 Worktree
+git worktree add -b feat/xxx .worktrees/feat-xxx
+
+# 2. 编码（在独立文件夹，主项目停在 main 不受影响）
+
+# 3. 提交（Conventional Commits）
+git commit -m "feat: xxx"
+# 前缀：feat / fix / docs / style / refactor / test / chore / ci
+
+# 4. 一键推送 + MR + 合并
+gmr
+```
+
+**gmr 做了什么：**
+- push origin + gitlab
+- glab mr create（squash + remove-source-branch）
+- glab mr merge（squash 合入 main）
+- checkout main + pull 双 remote（自动 stash 处理本地未提交文件）
+- 删除 feat branch + worktree
+
+---
+
+### 第三阶段：状态更新（Plane.so）
+
+把 Work Item 拖到 Done。零 ID 搬运，零同步脚本。
+
+---
+
+### 第四阶段：发布（Tag → CI 自动化）
+
+```bash
+# Cycle 内所有卡片 Done → 打 Tag
+git tag v0.x.x
+git push origin v0.x.x && git push gitlab v0.x.x
+```
+
+CI 自动执行：
+- **SAST + Secret Detection**：安全扫描
+- **auto-release**：`generate-changelog.sh` 提取 feat/fix/docs → zip 打包 → curl API 创建 GitLab Release
+- **sync-wiki**：wiki/ 变更自动同步
+
+Release description 自动按分类格式化：
+```
+## v0.x.x
+Changes since v0.y.y:
+### ✨ Features
+• abc123 feat: xxx
+### 🐛 Fixes
+• def567 fix: yyy
+```
+
+---
+
+### 速查表
+
+| 动作 | 命令 |
+|------|------|
+| 规划 | Plane 建 Work Item → 放入 Cycle |
+| 开始做 | `git worktree add -b feat/xxx .worktrees/feat-xxx` |
+| 写代码 | IDE 在独立文件夹开发 |
+| 保存进度 | `git commit -m "feat: xxx"` |
+| 合入 main | `gmr` |
+| 标记完成 | Plane 拖卡片到 Done |
+| 发布 | `git tag v0.x.x && git push origin v0.x.x && git push gitlab v0.x.x` |
+| Skill 安装同步 | `cp -r rana/. ~/.agents/skills/rana/` |
+
+---
+
+### 测试 & 验证
+
+```bash
+python3 -m pytest tests/ -v       # 所有测试
+python3 -m pytest tests/unit/ -v  # 单元
+python3 -m pytest tests/e2e/ -v   # E2E
+ruff check rana/scripts/          # Lint
+```
+
+---
+
+### 待后续优化
+
+| 项 | 优先级 |
+|-----|--------|
+| CI test stage（pytest） | 中 |
+| Mattermost 通知 | 低 |
+| Skill 安装同步自动化 | 低 |
 
 ---
 
