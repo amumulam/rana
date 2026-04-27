@@ -17,7 +17,7 @@
 - 各 Stage 均可按需触发协作讨论（缺口/疑点/批判反驳）
 - 协作讨论为多轮对话（人在环中），规范见 `references/collaboration-protocol.md`
 - P0 缺口规则见 `references/p0-gates.md`
-- 缺口补完后不重新输出报告本体，仅输出确认
+- 缺口补齐后不重新输出报告本体，仅输出确认
 
 ## 多功能需求处理
 
