@@ -157,7 +157,7 @@ rana/  (repo root, local path: requirements-analysis/)
 ├── wiki/                            # GitLab Wiki 源文件（push 后自动同步）
 │   ├── Home.md                      # Wiki 首页
 │   └── assets/                      # Wiki 图片资源
-├── workflow-diagram/                 # 架构图
+├── diagram/workflow/                    # 架构图
 │   ├── rana-workflow-v0.4.html       # v0.4.1 架构图（当前）
 │   └── rana-workflow-v0.3.html       # v0.3 架构图（旧版）
 ├── .gitlab-ci.yml                   # CI/CD — auto-release + wiki sync
