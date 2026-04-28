@@ -9,7 +9,7 @@
 ### 发布与通知
 
 - Skill 安装同步自动化 — tag 发布后 rsync 到安装目录（d61018c）
-- Mattermost 版本发布通知 — Release 创建后发送 changelog 到频道（d61018c）
+- Mattermost 版本发布通知 — Release 创建后发送 release note 到频道（d61018c）
 - Release description 支持 RELEASE_NOTE.md 手写优先、机械 changelog fallback（526e70e）
 
 ### CI 脚本修复
