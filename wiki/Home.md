@@ -1,6 +1,6 @@
 # 如何使用 rana 需求分析机器人
 
-本指南帮助你通过 Mattermost 与 rana 机器人对话，完成 PRD 需求分析。
+本指南帮助你通过 Mattermost 与 rana 机器人对话，完成 PRD 需求分析。 
 
 ---
 
