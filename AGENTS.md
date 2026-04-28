@@ -447,26 +447,40 @@ comment 使用 HTML（Plane 不渲染 markdown），格式如下：
 
 ### 第四阶段：发布（Tag → CI 自动化）
 
+**发布前的必要步骤**：写 Release Note。
+
+1. 在项目根目录创建 `RELEASE_NOTE.md`，用分点列表写本次版本的核心变更：
+   ```markdown
+   ## v0.x.x
+
+   - xxx：描述
+   - yyy：描述
+   ```
+   聚焦重点变更，不需要罗列每一个 commit。机械的 git log 拼凑会在 fallback 时自动生成。
+2. 提交并 push `RELEASE_NOTE.md` 到 main
+3. 打 Tag
+
 ```bash
+# 写完 RELEASE_NOTE.md 后
+git add RELEASE_NOTE.md && git commit -m "docs: release note for v0.x.x"
+git push origin main && git push gitlab main
+
 # Cycle 内所有卡片 Done → 打 Tag
 git tag v0.x.x
 git push origin v0.x.x && git push gitlab v0.x.x
 ```
 
-CI 自动执行：
-- **SAST + Secret Detection**：安全扫描
-- **auto-release**：`generate-changelog.sh` 提取 feat/fix/docs → zip 打包 → curl API 创建 GitLab Release
-- **sync-wiki**：wiki/ 变更自动同步
+CI auto-release job 的逻辑：
+- **如果 `RELEASE_NOTE.md` 存在**：读取该文件内容作为 Release description
+- **如果不存在**：fallback 到 `generate-changelog.sh` 机械拼凑 git log（按 feat/fix/docs 分类）
 
-Release description 自动按分类格式化：
-```
-## v0.x.x
-Changes since v0.y.y:
-### ✨ Features
-• abc123 feat: xxx
-### 🐛 Fixes
-• def567 fix: yyy
-```
+CI 自动执行：
+- **pytest**：测试质量门禁（必须通过才进入 release）
+- **auto-release**：读取 RELEASE_NOTE.md（优先）或机械 changelog（fallback）→ curl API 创建 GitLab Release
+- **notify-mattermost**：发送 Release 通知到 Mattermost 频道
+- **sync-skill**：rsync rana/ 到安装目录
+- **sync-wiki**：wiki/ 变更同步（如有变更）
+- **SAST + Secret Detection**：安全扫描
 
 ---
 
@@ -480,6 +494,7 @@ Changes since v0.y.y:
 | 保存进度 | `git commit -m "feat: xxx"` |
 | 合入 main | `gmr` |
 | 标记完成 | Plane 拖卡片到 Done |
+| 写 Release Note | 编辑 `RELEASE_NOTE.md` → commit → push main |
 | 发布 | `git tag v0.x.x && git push origin v0.x.x && git push gitlab v0.x.x` |
 | Skill 安装同步 | `cp -r rana/. ~/.agents/skills/rana/` |
 
