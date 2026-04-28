@@ -28,12 +28,12 @@ auto-release:
     - apk add --no-cache git zip curl
     - git fetch --tags
   script:
+    - CHANGELOG=$(sh scripts/generate-changelog.sh $CI_COMMIT_TAG)
     - mkdir -p /tmp/rana-release
     - git archive $CI_COMMIT_TAG rana/ | tar -x -C /tmp/rana-release
     - cd /tmp/rana-release/rana && zip -r /tmp/rana-${CI_COMMIT_TAG}.zip .
     - PACKAGE_URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/rana/${CI_COMMIT_TAG}/rana-${CI_COMMIT_TAG}.zip"
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file /tmp/rana-${CI_COMMIT_TAG}.zip "$PACKAGE_URL"'
-    - CHANGELOG=$(sh scripts/generate-changelog.sh $CI_COMMIT_TAG)
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --header "Content-Type: application/json" --data "{\"tag_name\":\"$CI_COMMIT_TAG\",\"name\":\"rana $CI_COMMIT_TAG\",\"description\":\"$CHANGELOG\",\"assets\":{\"links\":[{\"name\":\"rana-${CI_COMMIT_TAG}.zip\",\"url\":\"${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/rana/${CI_COMMIT_TAG}/rana-${CI_COMMIT_TAG}.zip\",\"link_type\":\"package\"}]}}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases"'
 
 notify-mattermost:
