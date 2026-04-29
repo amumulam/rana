@@ -1,5 +1,5 @@
-#!/bin/bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
 WIKI_DIR="${1:-wiki}"
 BRANCH="master"
@@ -14,10 +14,10 @@ if [ -z "${WIKI_REPO_URL:-}" ]; then
     exit 1
 fi
 
-git clone --depth 1 "$WIKI_REPO_URL" "$WIKI_DST" 2>/dev/null || {
+git clone --depth 1 "$WIKI_REPO_URL" "$WIKI_DST" || {
     mkdir -p "$WIKI_DST"
     git init "$WIKI_DST"
-    cd "$WIKI_DST" && git checkout -b "$BRANCH" 2>/dev/null || git branch -m "$BRANCH"
+    cd "$WIKI_DST" && git checkout -b "$BRANCH" || git branch -m "$BRANCH"
 }
 
 rsync -a --exclude='.git' --delete "$WIKI_SRC/" "$WIKI_DST/"

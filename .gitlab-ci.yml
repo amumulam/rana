@@ -72,4 +72,4 @@ sync-wiki:
     - git config --global user.name "Wiki Bot"
   script:
     - export WIKI_REPO_URL="https://project_${CI_PROJECT_ID}_bot:${WIKI_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.wiki.git"
-    - bash scripts/sync-wiki.sh wiki
+    - sh scripts/sync-wiki.sh wiki
