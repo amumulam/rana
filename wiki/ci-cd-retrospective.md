@@ -466,7 +466,32 @@ ERROR: Job failed: exit code 1
 | sync-wiki | ❌ failed | SSH key `error in libcrypto` |
 
 - **sync-wiki 失败**：CI Variable `SSH_PRIVATE_KEY` 格式与 alpine 的 OpenSSH 10.2 不兼容。`changes: wiki/**` 规则在 tag pipeline 上可能始终评估为 true（GitLab `changes` 在无 base ref 时无法判断变更范围）
-- **未修复**，核心发布流程已完整走通
+- **核心发布流程已完整走通**
+
+### Round 6：sync-wiki 排查与放弃
+
+- **时间**：2026-04-28
+- **尝试方案**（均失败）：
+  1. `ssh-add` stdin 方式 + PEM 格式旧 key → OpenSSH 10.2 报 `error in libcrypto`
+  2. 改用 OpenSSH 格式 ed25519 新 key → stdin `ssh-add` 仍报 `error in libcrypto`
+  3. 改用文件加载方式 (`echo > file && chmod 600 && ssh-add file`) → 同报 `error in libcrypto`
+  4. 改用 File-type Variable → 默认权限 0666，`chmod 600` 后权限解决但内容格式仍被破坏
+  5. File-type textarea 对 SSH key 的多行逐行格式不可控（可能做 HTML entity 转义、BOM、CRLF 处理）
+- **根因**：GitLab CI Variable 的 web UI 编辑器无法保证写入容器的文件逐行完整、无编码污染。SSH 私钥要求精确的7行 openSSH 格式，任何编码偏差都会导致 `ssh-add` 拒绝加载
+- **结论**：放弃 sync-wiki 自动化，改为纯手动 `bash scripts/sync-wiki.sh wiki`
+
+### Round 7：RELEASE_NOTE.md 机制
+
+- **时间**：2026-04-28
+- **变更**：
+  - `build-release-payload.sh`：如果 RELEASE_NOTE.md 存在就用它，否则 fallback 到 changelog.txt
+  - `.gitlab-ci.yml`：auto-release job 确保可读取 RELEASE_NOTE.md
+  - `AGENTS.md`：发布流程新增"写 RELEASE_NOTE.md"步骤
+- **Release Note 格式要求**：
+  - 按功能模块分类（`### CI/CD 流水线`、`### 发布与通知` 等）
+  - 每条变更描述后括号标注 commit hash（如 `push 和 MR 自动跑 pytest（87a71f6）`）
+  - 聚焦重点变更，不需要罗列每个 commit
+- **结论**：sync-wiki 已放弃自动化，Release description 支持手写优先
 
 ---
 
