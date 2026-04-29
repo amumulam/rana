@@ -58,3 +58,18 @@ sync-skill:
   script:
     - rsync -av --delete --exclude='.git' rana/ /skills-local/rana/
     - rsync -av --delete --exclude='.git' rana/ /skills-server/rana/
+
+sync-wiki:
+  stage: deploy
+  image: alpine:latest
+  needs: []
+  rules:
+    - changes:
+      - wiki/**
+  before_script:
+    - apk add --no-cache git rsync
+    - git config --global user.email "wiki-bot@gitlab.vmic.xyz"
+    - git config --global user.name "Wiki Bot"
+  script:
+    - export WIKI_REPO_URL="https://project_${CI_PROJECT_ID}_bot:${WIKI_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.wiki.git"
+    - bash scripts/sync-wiki.sh wiki
