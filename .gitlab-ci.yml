@@ -11,7 +11,7 @@ pytest:
   stage: test
   image: python:3.9-slim
   before_script:
-    - pip install pdfplumber pytest
+    - pip install --timeout=120 --retries=5 pdfplumber pytest
   script:
     - python3 -m pytest tests/ -v
 
@@ -65,11 +65,11 @@ sync-wiki:
   rules:
   - changes:
     - wiki/**
+  needs: []
   before_script:
   - apk add --no-cache git openssh-client rsync
   - eval $(ssh-agent -s)
-  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_key
-  - chmod 600 ~/.ssh/id_key
+  - cp "$SSH_PRIVATE_KEY_FILE" ~/.ssh/id_key && chmod 600 ~/.ssh/id_key
   - ssh-add ~/.ssh/id_key
   - mkdir -p ~/.ssh
   - ssh-keyscan gitlab.vmic.xyz >> ~/.ssh/known_hosts 2>/dev/null
