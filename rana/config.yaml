@@ -3,7 +3,9 @@
 # 未配置的类型将使用 fallback（模型多模态解读）
 
 file_parser:
-  pdf: "mineru-pipeline"
+  pdf: "pdf"
+  xlsx: "xlsx"
+  xls: "xlsx"
   # png: "mineru-pipeline"
   docx: "mineru-pipeline"
   # 用户可添加更多类型或替换为其他 skill
