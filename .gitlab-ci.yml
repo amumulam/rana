@@ -69,8 +69,8 @@ sync-wiki:
   before_script:
   - apk add --no-cache git openssh-client rsync
   - eval $(ssh-agent -s)
-  - cp "$SSH_PRIVATE_KEY_FILE" ~/.ssh/id_key && chmod 600 ~/.ssh/id_key
-  - ssh-add ~/.ssh/id_key
+  - mkdir -p ~/.ssh
+  - ssh-add "$SSH_PRIVATE_KEY"
   - mkdir -p ~/.ssh
   - ssh-keyscan gitlab.vmic.xyz >> ~/.ssh/known_hosts 2>/dev/null
   - git config --global user.email "wiki-bot@gitlab.vmic.xyz"
