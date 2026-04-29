@@ -182,29 +182,36 @@ rana/  (repo root, local path: requirements-analysis/)
 
 ## Wiki Sync
 
-**已放弃 CI 自动同步方案，仅保留手动同步。**
+项目仓库中的 `wiki/` 目录通过 CI/CD 自动同步到 GitLab Wiki（HTTPS + Access Token 方式）。
 
+**手动同步**（CI 不可用时）：
 ```bash
 bash scripts/sync-wiki.sh wiki
 ```
 
-### sync-wiki CI 方案踩坑记录与结论
+需要 GitLab CI Variable `WIKI_PUSH_TOKEN`（Settings → CI/CD → Variables，Project Access Token，Role: Maintainer，Scope: write_repository）。
 
-**结论：GitLab CI File-type Variable 不适合存 SSH 私钥，sync-wiki 自动化不可行。**
+### sync-wiki 踩坑记录
+
+**最终方案：HTTPS + Project Access Token（不用 SSH）**
 
 **踩坑历程**（按时间顺序）：
 
 1. **`ssh-add` stdin 方式 + PEM 格式旧 key** — OpenSSH 10.2 (alpine:latest) 报 `error in libcrypto`。旧 key 是 PEM 格式（`-----BEGIN RSA PRIVATE KEY-----`），OpenSSH 10.2 对非 OpenSSH 格式 key 更严格。
 2. **改用 OpenSSH 格式 ed25519 新 key** — 重新生成 `-----BEGIN OPENSSH PRIVATE KEY-----` 格式 key，stdin `ssh-add` 仍报 `error in libcrypto`。排查发现 GitLab CI Variable (Variable type) 在传递时可能破坏多行内容。
-3. **改用文件加载方式** — `echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_key && chmod 600 && ssh-add ~/.ssh/id_key`。同报 `error in libcrypto`。说明问题不在传递方式（stdin vs file），而在 Variable 内容本身。
+3. **改用文件加载方式** — `echo "$SSH_PRIVATE_KEY" > file && chmod 600 && ssh-add file`。同报 `error in libcrypto`。说明问题不在传递方式（stdin vs file），而在 Variable 内容本身。
 4. **改用 File-type Variable** — GitLab 从 Variable type 改为 File type。File type 变量把 Value 内容写入文件，变量名 `$SSH_PRIVATE_KEY` 变成文件路径。
 5. **`$SSH_PRIVATE_KEY_FILE` 空字符串** — 误以为 File-type 变量用 `_FILE` 后缀，实际 GitLab 的 File-type 变量直接赋路径给同名变量，无后缀。
-6. **`ssh-add "$SSH_PRIVATE_KEY"` 报 UNPROTECTED PRIVATE KEY FILE (0666)** — GitLab File-type 变量默认权限 0666，ssh-add 要求 ≤0600。加 `chmod 600 "$SSH_PRIVATE_KEY"` 后权限问题解决。
-7. **chmod 修好后仍报 `error in libcrypto`** — 证明文件权限修好了，但**文件内容本身被破坏**。排查发现：CI Variable Value 里只填了 base64 body（缺少 `-----BEGIN/END OPENSSH PRIVATE KEY-----` 头尾行），ssh-add 无法识别。手动补充头尾行后，GitLab web UI textarea 可能对多行内容做了不可见的编码处理（HTML entity 转义、UTF-8 BOM、CRLF 等），写入容器的文件不是合法的 OpenSSH key 格式。
+6. **`ssh-add "$SSH_PRIVATE_KEY"` 报 UNPROTECTED PRIVATE KEY FILE (0666)** — GitLab File-type 变量默认权限 0666，ssh-add 要求 ≤0600。加 `chmod 600` 后权限解决。
+7. **chmod 修好后仍报 `error in libcrypto`** — 文件内容被破坏：CI Variable Value 只放了 base64 body（缺少 `-----BEGIN/END OPENSSH PRIVATE KEY-----` 头尾行），补充头尾行后 GitLab web UI textarea 对多行内容做了不可见编码处理。
 
-**根因**：GitLab CI Variable 的 web UI 编辑器无法保证写入容器的文件逐行完整、无编码污染。Variable type 会经过 shell 展开+编码转换，File type 的 textarea 对多行内容格式不可控。SSH 私钥要求精确的逐行格式（7行 openSSH key），任何编码偏差都会导致 `ssh-add` 拒绝加载。
+**根因**：GitLab CI Variable 的 web UI 编辑器无法保证写入容器的文件逐行完整、无编码污染。SSH 私钥要求精确的7行 openSSH 格式，任何编码偏差都会导致 `ssh-add` 拒绝加载。
 
-**最终决定：放弃 sync-wiki 自动化，wiki 同步改为纯手动 `bash scripts/sync-wiki.sh wiki`。`
+8. **改用 HTTPS + Project Access Token** — Token 是单行字符串，不存在多行格式被 CI Variable 破坏的问题。URL 格式 `https://project_<ID>_bot:<TOKEN>@<HOST>/<PATH>.wiki.git`。
+9. **alpine 没有 bash** — sync-wiki.sh 用 `#!/bin/bash`，alpine 默认只有 sh。改用 `#!/bin/sh` + `sh scripts/sync-wiki.sh`。
+10. **Access Token 权限不够** — Token Role 为 Guest 时 git push 返回 403。改为 **Maintainer** + **write_repository** scope 后成功。
+
+**结论：SSH 方案在 GitLab CI 环境不可行（alpine OpenSSH 10.2 + CI Variable 多行格式污染）。HTTPS + Project Access Token（Role: Maintainer）是可行方案。**
 
 ---
 
@@ -492,6 +499,7 @@ CI 自动执行：
 - **auto-release**：读取 RELEASE_NOTE.md（优先）或机械 changelog（fallback）→ curl API 创建 GitLab Release
 - **notify-mattermost**：发送 Release 通知到 Mattermost 频道
 - **sync-skill**：rsync rana/ 到安装目录
+- **sync-wiki**：wiki/ 变更自动同步到 GitLab Wiki（HTTPS + Access Token）
 - **SAST + Secret Detection**：安全扫描
 
 ---

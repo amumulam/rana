@@ -478,7 +478,7 @@ ERROR: Job failed: exit code 1
   4. 改用 File-type Variable → 默认权限 0666，`chmod 600` 后权限解决但内容格式仍被破坏
   5. File-type textarea 对 SSH key 的多行逐行格式不可控（可能做 HTML entity 转义、BOM、CRLF 处理）
 - **根因**：GitLab CI Variable 的 web UI 编辑器无法保证写入容器的文件逐行完整、无编码污染。SSH 私钥要求精确的7行 openSSH 格式，任何编码偏差都会导致 `ssh-add` 拒绝加载
-- **结论**：放弃 sync-wiki 自动化，改为纯手动 `bash scripts/sync-wiki.sh wiki`
+- **结论**：放弃 sync-wiki SSH 自动化，改为纯手动 `bash scripts/sync-wiki.sh wiki`
 
 ### Round 7：RELEASE_NOTE.md 机制
 
@@ -491,7 +491,17 @@ ERROR: Job failed: exit code 1
   - 按功能模块分类（`### CI/CD 流水线`、`### 发布与通知` 等）
   - 每条变更描述后括号标注 commit hash（如 `push 和 MR 自动跑 pytest（87a71f6）`）
   - 聚焦重点变更，不需要罗列每个 commit
-- **结论**：sync-wiki 已放弃自动化，Release description 支持手写优先
+- **结论**：Release description 支持手写优先
+
+### Round 8：sync-wiki HTTPS + Access Token 方案成功
+
+- **时间**：2026-04-29
+- **方案**：改用 HTTPS + Project Access Token 推送 wiki，不再依赖 SSH
+- **踩坑**：
+  1. `bash scripts/sync-wiki.sh` → alpine 没有 bash，改用 `sh`
+  2. Project Access Token Role 为 Guest → git push 403 Forbidden
+  3. 改为 **Maintainer** + **write_repository** scope → 成功
+- **结论**：SSH 方案在 GitLab CI 环境不可行，HTTPS + Project Access Token（Role: Maintainer）是可行方案。sync-wiki 自动化恢复。
 
 ---
 
