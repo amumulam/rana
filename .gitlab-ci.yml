@@ -70,6 +70,7 @@ sync-wiki:
   - apk add --no-cache git openssh-client rsync
   - eval $(ssh-agent -s)
   - mkdir -p ~/.ssh
+  - chmod 600 "$SSH_PRIVATE_KEY"
   - ssh-add "$SSH_PRIVATE_KEY"
   - mkdir -p ~/.ssh
   - ssh-keyscan gitlab.vmic.xyz >> ~/.ssh/known_hosts 2>/dev/null
