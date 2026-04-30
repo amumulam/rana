@@ -467,23 +467,31 @@ comment 使用 HTML（Plane 不渲染 markdown），格式如下：
 
 ### 第四阶段：发布（Tag → CI 自动化）
 
-**发布前的必要步骤**：写 Release Note。
+**发布前的必要步骤**：修改版本号 → 写 Release Note。
 
-1. 在项目根目录创建 `RELEASE_NOTE.md`，用分点列表写本次版本的核心变更：
+1. 更新 `rana/SKILL.md` 中的版本号（搜索 `v0.x.x` 或 `版本` 相关行）
+2. 在项目根目录创建 `RELEASE_NOTE.md`，用分点列表写本次版本的核心变更：
    ```markdown
    ## v0.x.x
 
-   - xxx：描述
-   - yyy：描述
+   ### 分类标题
+
+   — 描述（commit_hash）
+   — 描述（commit_hash）
    ```
    聚焦重点变更，不需要罗列每一个 commit。机械的 git log 拼凑会在 fallback 时自动生成。
-2. 提交并 push `RELEASE_NOTE.md` 到 main
-3. 打 Tag
+3. 提交并 push 到 main
+4. 删除旧 tag（如有 rc 版本需要撤回）
+5. 打 Tag
 
 ```bash
-# 写完 RELEASE_NOTE.md 后
-git add RELEASE_NOTE.md && git commit -m "docs: release note for v0.x.x"
+# 修改版本号 + 写完 RELEASE_NOTE.md 后
+git add rana/SKILL.md RELEASE_NOTE.md && git commit -m "docs: release note for v0.x.x"
 git push origin main && git push gitlab main
+
+# 如需撤回旧 tag（如 v0.x.x-rc1）
+glab api projects/68763/releases/v0.x.x-rc1 -X DELETE
+git tag -d v0.x.x-rc1 && git push origin :refs/tags/v0.x.x-rc1 && git push gitlab :refs/tags/v0.x.x-rc1
 
 # Cycle 内所有卡片 Done → 打 Tag
 git tag v0.x.x

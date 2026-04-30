@@ -1,6 +1,6 @@
 ---
 name: rana
-version: 0.4.1
+version: 0.4.2
 license: MIT
 description: |
     UX 需求分析助手。帮助交互设计师对 PM 的 PRD/需求清单进行结构化分析，输出可直接进入设计分析阶段的交付物。
