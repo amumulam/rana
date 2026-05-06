@@ -1,6 +1,14 @@
+default:
+  pull_policy: if-not-present
+
 stages:
+  - test
   - release
   - deploy
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Secret-Detection.gitlab-ci.yml
 
 auto-release:
   stage: release
