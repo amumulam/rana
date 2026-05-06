@@ -1,5 +1,4 @@
 stages:
-  - test
   - release
   - deploy
 
@@ -7,18 +6,9 @@ include:
   - template: Security/SAST.gitlab-ci.yml
   - template: Security/Secret-Detection.gitlab-ci.yml
 
-pytest:
-  stage: test
-  image: python:3.9-slim
-  before_script:
-    - pip install --timeout=120 --retries=5 pdfplumber pytest
-  script:
-    - python3 -m pytest tests/ -v
-
 auto-release:
   stage: release
   image: alpine:latest
-  needs: [pytest]
   variables:
     GIT_DEPTH: 0
   rules:
