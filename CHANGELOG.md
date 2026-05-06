@@ -7,17 +7,19 @@
 
 ## [0.4.3] - 2026-05-03
 
-### 新增
+### SKILL 优化
 
-- Agent 行为约束章节（SKILL.md 独立章节），5 项轻量禁令式规则约束 Agent 工具调用行为
+- 通过规则约束 Agent 工具调用行为
 
-### 变更
+### Mattermost [Bridge](https://gitlab.vmic.xyz/11184725/opencode-chat-bridge) 优化 
 
-- `RELEASE_NOTE.md` 重命名为 `CHANGELOG.md`，格式改为 Keep a Changelog 规范
+- Bot 在线状态指示（Mattermost 侧栏 status icon）
+- 新增思考状态表示
+- 减少工具调用在 C 端界面的输出
+- 更新模型：`DeepSeek-V4-Pro`
 
-### 移除
 
-- `scripts/generate-changelog.sh` — 机械拼接脚本，已被手写维护替代
+
 
 ## [0.4.2] - 2026-04-30
 
